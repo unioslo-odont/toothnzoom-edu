@@ -130,6 +130,7 @@ export class RadiographViewer {
         // 3. Now that everything is reset and drawn, save this clean state.
         this.saveOriginalState();
 
+
         // 4. Update the UI panels.
         document.getElementById('instructions').style.display = 'none';
         document.getElementById('infoPanel').style.display = 'block';
