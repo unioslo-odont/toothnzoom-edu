@@ -119,27 +119,37 @@ export class RadiographViewer {
     setImage(img) {
         this.originalImage = img;
 
-        // FIX: The order of operations is now correct and reliable.
-        // 1. Reset the view. This resizes and clears the canvas for the new image.
-        this.resetView();
-        
-        // 2. Reset adjustments. This sets sliders to default AND calls processImage() 
-        //    to draw the new, clean image on the canvas.
-        this.resetAdjustments(); 
+        // Reset all settings to defaults first
+        this.brightness = 0;
+        this.contrast = 0;
+        this.edgeEnhancement = 0;
+        this.isInverted = false;
 
-        // 3. Now that everything is reset and drawn, save this clean state.
+        // Update UI controls to reflect defaults
+        document.getElementById('brightness').value = 0;
+        document.getElementById('contrast').value = 0;
+        document.getElementById('edgeEnhancement').value = 0;
+        document.getElementById('brightnessValue').textContent = '0';
+        document.getElementById('contrastValue').textContent = '0';
+        document.getElementById('edgeValue').textContent = '0';
+        document.getElementById('invertBtn').classList.remove('active');
+
+        // Set up the view and draw the image
+        this.resetView();
+
+        // Save the clean state
         this.saveOriginalState();
 
-
-        // 4. Update the UI panels.
+        // Update UI panels
         document.getElementById('instructions').style.display = 'none';
         document.getElementById('infoPanel').style.display = 'block';
+        
+        // Update histogram if visible
         this.updateHistogram();
     }
 
     /**
      * Reset all settings to default values and update UI controls.
-     * This is the function that should be used to reset adjustments.
      */
     resetAdjustments() {
         this.brightness = 0;
@@ -156,12 +166,20 @@ export class RadiographViewer {
         document.getElementById('edgeValue').textContent = '0';
         document.getElementById('invertBtn').classList.remove('active');
 
-        // Redraw the image with the default settings
+        // Redraw the image with default settings
         this.processImage();
     }
     
     /**
-     * Reset view to fit image in viewport. This also resizes and clears the canvas.
+     * FIXED: Complete reset - both view and adjustments
+     */
+    resetAll() {
+        this.resetView();
+        this.resetAdjustments();
+    }
+    
+    /**
+     * Reset view to fit image in viewport and draw the image
      */
     resetView() {
         if (!this.originalImage) return;
@@ -170,7 +188,7 @@ export class RadiographViewer {
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
 
-        // Set canvas size to match image
+        // Set canvas size to match image (this clears the canvas)
         this.canvas.width = this.originalImage.width;
         this.canvas.height = this.originalImage.height;
 
@@ -190,6 +208,9 @@ export class RadiographViewer {
 
         this.updateZoomDisplay();
         this.updateCanvasTransform();
+        
+        // FIXED: Draw the image after setting up the view
+        this.processImage();
     }
     
     /**
@@ -198,19 +219,24 @@ export class RadiographViewer {
     processImage() {
         if (!this.originalImage) return;
 
+        // Clear and draw original image
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.drawImage(this.originalImage, 0, 0);
 
-        let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        // Only apply processing if there are actual adjustments to make
+        if (this.brightness !== 0 || this.contrast !== 0 || this.edgeEnhancement !== 0 || this.isInverted) {
+            let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
-        imageData = this.imageProcessor.process(imageData, {
-            brightness: this.brightness,
-            contrast: this.contrast,
-            edgeEnhancement: this.edgeEnhancement,
-            invert: this.isInverted
-        });
+            imageData = this.imageProcessor.process(imageData, {
+                brightness: this.brightness,
+                contrast: this.contrast,
+                edgeEnhancement: this.edgeEnhancement,
+                invert: this.isInverted
+            });
 
-        this.ctx.putImageData(imageData, 0, 0);
+            this.ctx.putImageData(imageData, 0, 0);
+        }
+        
         this.updateHistogram();
     }
     
@@ -277,13 +303,36 @@ export class RadiographViewer {
         const height = canvas.height;
         const maxValue = Math.max(...histData.luminance);
 
-        ctx.fillStyle = '#ffffff';
+        if (maxValue === 0) return; // Avoid division by zero
 
+        // Draw histogram bars
+        ctx.fillStyle = '#ffffff';
         for (let i = 0; i < 256; i++) {
-            const barHeight = (histData.luminance[i] / maxValue) * height;
-            const x = (i / 256) * width;
-            const barWidth = width / 256;
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            const barHeight = (histData.luminance[i] / maxValue) * height * 0.8;
+            const x = (i / 255) * width;
+            ctx.fillRect(x, height - barHeight, width / 256, barHeight);
+        }
+
+        // Draw grid lines
+        ctx.strokeStyle = '#444444';
+        ctx.lineWidth = 0.5;
+        
+        // Vertical lines (every 64 values)
+        for (let i = 0; i <= 4; i++) {
+            const x = (i / 4) * width;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+
+        // Horizontal lines
+        for (let i = 0; i <= 4; i++) {
+            const y = (i / 4) * height;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
         }
     }
     
@@ -298,15 +347,17 @@ export class RadiographViewer {
         }
     }
     
-    // Unchanged methods below...
+    // Navigation and view methods
     zoomAtPoint(pointX, pointY, zoomFactor) {
         const newZoom = this.zoom * zoomFactor;
         if (newZoom < CONFIG.MIN_ZOOM || newZoom > CONFIG.MAX_ZOOM) return;
+        
         const zoomOriginX = (pointX - this.panX) / this.zoom;
         const zoomOriginY = (pointY - this.panY) / this.zoom;
         this.zoom = newZoom;
         this.panX = pointX - zoomOriginX * this.zoom;
         this.panY = pointY - zoomOriginY * this.zoom;
+        
         this.updateZoomDisplay();
         this.updateCanvasTransform();
     }
@@ -351,5 +402,15 @@ export class RadiographViewer {
 
     hasImage() {
         return this.originalImage !== null;
+    }
+
+    getZoom() {
+        return this.zoom;
+    }
+
+    setZoom(zoomLevel) {
+        this.zoom = Math.max(CONFIG.MIN_ZOOM, Math.min(CONFIG.MAX_ZOOM, zoomLevel));
+        this.updateZoomDisplay();
+        this.updateCanvasTransform();
     }
 }
