@@ -15,7 +15,7 @@ export class LanguageManager {
         this.supportedLanguages = ['en', 'no'];
         this.initialized = false;
     }
-    
+
     /**
      * Initialize the language manager
      * @returns {Promise<void>}
@@ -27,13 +27,13 @@ export class LanguageManager {
             if (!response.ok) {
                 throw new Error('Failed to load language file');
             }
-            
+
             this.translations = await response.json();
-            
+
             // Get user's preferred language
             const savedLanguage = localStorage.getItem('preferredLanguage');
             const browserLanguage = navigator.language.substring(0, 2).toLowerCase();
-            
+
             // Determine which language to use
             if (savedLanguage && this.supportedLanguages.includes(savedLanguage)) {
                 this.currentLanguage = savedLanguage;
@@ -42,22 +42,22 @@ export class LanguageManager {
             } else {
                 this.currentLanguage = this.defaultLanguage;
             }
-            
+
             this.initialized = true;
-            
+
             // Apply initial translations
             await this.applyTranslations();
-            
+
             // Setup language selector if it exists
             this.setupLanguageSelector();
-            
+
         } catch (error) {
             console.error('Failed to initialize language manager:', error);
             // Fall back to English if loading fails
             this.currentLanguage = 'en';
         }
     }
-    
+
     /**
      * Get a translation by key path
      * @param {string} keyPath - Dot-notation path to translation (e.g., "buttons.openImage")
@@ -69,10 +69,10 @@ export class LanguageManager {
             console.warn('Language manager not initialized');
             return keyPath;
         }
-        
+
         const keys = keyPath.split('.');
         let value = this.translations[this.currentLanguage];
-        
+
         // Navigate through the object
         for (const key of keys) {
             if (value && value[key]) {
@@ -87,15 +87,15 @@ export class LanguageManager {
                 break;
             }
         }
-        
+
         // Handle string interpolation
         if (typeof value === 'string' && Object.keys(params).length > 0) {
             return this.interpolate(value, params);
         }
-        
+
         return value;
     }
-    
+
     /**
      * Get translation from specific language
      * @private
@@ -103,7 +103,7 @@ export class LanguageManager {
     getFromLanguage(language, keyPath) {
         const keys = keyPath.split('.');
         let value = this.translations[language];
-        
+
         for (const key of keys) {
             if (value && value[key]) {
                 value = value[key];
@@ -111,10 +111,10 @@ export class LanguageManager {
                 return null;
             }
         }
-        
+
         return value;
     }
-    
+
     /**
      * Interpolate parameters into string
      * @private
@@ -124,7 +124,7 @@ export class LanguageManager {
             return params[key] !== undefined ? params[key] : match;
         });
     }
-    
+
     /**
      * Set current language
      * @param {string} language - Language code (e.g., 'en', 'no')
@@ -134,19 +134,19 @@ export class LanguageManager {
             console.error(`Unsupported language: ${language}`);
             return;
         }
-        
+
         this.currentLanguage = language;
         localStorage.setItem('preferredLanguage', language);
-        
+
         // Apply translations to UI
         await this.applyTranslations();
-        
+
         // Dispatch event for components that need to react
-        window.dispatchEvent(new CustomEvent('languageChanged', { 
-            detail: { language } 
+        window.dispatchEvent(new CustomEvent('languageChanged', {
+            detail: { language }
         }));
     }
-    
+
     /**
      * Get current language
      * @returns {string} Current language code
@@ -154,7 +154,7 @@ export class LanguageManager {
     getCurrentLanguage() {
         return this.currentLanguage;
     }
-    
+
     /**
      * Get all supported languages
      * @returns {Array} Array of language objects
@@ -165,7 +165,7 @@ export class LanguageManager {
             name: this.translations[code]?.name || code
         }));
     }
-    
+
     /**
      * Apply translations to all UI elements
      * @private
@@ -173,17 +173,17 @@ export class LanguageManager {
     async applyTranslations() {
         // Apply text content translations
         this.applyElementTranslations();
-        
+
         // Apply placeholder translations
         this.applyPlaceholderTranslations();
-        
+
         // Apply title/tooltip translations
         this.applyTooltipTranslations();
-        
+
         // Update document language
         document.documentElement.lang = this.currentLanguage;
     }
-    
+
     /**
      * Apply translations to elements with data-i18n attribute
      * @private
@@ -199,7 +199,7 @@ export class LanguageManager {
             'scanImagesBtn': 'buttons.scanImages',
             'closeUrlBtn': 'buttons.close'
         };
-        
+
         for (const [id, key] of Object.entries(buttonMappings)) {
             const element = document.getElementById(id);
             if (element) {
@@ -208,46 +208,41 @@ export class LanguageManager {
                 console.warn(`Button element not found: ${id}`);
             }
         }
-        
-        // Labels
+
+        // FIX: Simplified the logic for updating control group labels
         const labelMappings = {
-            'zoomLabel': 'labels.zoom',
-            'brightnessLabel': 'labels.brightness',
-            'contrastLabel': 'labels.contrast',
-            'edgeLabel': 'labels.edge'
+            'zoomDisplay': 'labels.zoom',
+            'brightness': 'labels.brightness',
+            'contrast': 'labels.contrast',
+            'edgeEnhancement': 'labels.edge'
         };
-        
-        for (const [id, key] of Object.entries(labelMappings)) {
-            const element = document.querySelector(`label[for="${id}"]`);
-            if (!element) {
-                // Try finding by parent control group
-                const control = document.getElementById(id.replace('Label', ''));
-                if (control) {
-                    const label = control.parentElement?.querySelector('label');
-                    if (label) {
-                        label.textContent = this.get(key) + ':';
-                    }
+
+        for (const [controlId, key] of Object.entries(labelMappings)) {
+            const control = document.getElementById(controlId);
+            if (control) {
+                const label = control.parentElement?.querySelector('label');
+                if (label) {
+                    label.textContent = this.get(key) + ':';
                 }
-            } else {
-                element.textContent = this.get(key) + ':';
             }
         }
-        
+
         // Instructions
         const instructions = document.querySelector('.instructions');
         if (instructions) {
+            // FIX: Removed hardcoded characters; they are now in the JSON file.
             instructions.innerHTML = `
                 <h2>${this.get('instructions.title')}</h2>
                 <p>${this.get('instructions.subtitle')}</p>
                 <small>
                     <strong>${this.get('instructions.mouseControls')}:</strong><br>
-                    • ${this.get('instructions.mouseDetails')}<br>
+                    ${this.get('instructions.mouseDetails')}<br>
                     <strong>${this.get('instructions.touchControls')}:</strong><br>
-                    • ${this.get('instructions.touchDetails')}
+                    ${this.get('instructions.touchDetails')}
                 </small>
             `;
         }
-        
+
         // Server dialog
         const urlDialog = document.getElementById('urlInput');
         if (urlDialog) {
@@ -255,23 +250,24 @@ export class LanguageManager {
             if (title) {
                 title.textContent = this.get('serverDialog.title');
             }
-            
+
             const examples = urlDialog.querySelector('.url-examples');
             if (examples) {
+                // FIX: Removed hardcoded characters.
                 examples.innerHTML = `
                     ${this.get('serverDialog.examples')}:<br>
-                    • ${this.get('serverDialog.exampleLocal')}<br>
-                    • ${this.get('serverDialog.exampleUrl')}
+                    ${this.get('serverDialog.exampleLocal')}<br>
+                    ${this.get('serverDialog.exampleUrl')}
                 `;
             }
         }
-        
+
         // Drop zone
         const dropZone = document.getElementById('dropZone');
         if (dropZone) {
             dropZone.textContent = this.get('hints.dropImage');
         }
-        
+
         // Info panel
         const infoPanel = document.getElementById('infoPanel');
         if (infoPanel) {
@@ -287,7 +283,7 @@ export class LanguageManager {
             }
         }
     }
-    
+
     /**
      * Apply placeholder translations
      * @private
@@ -298,7 +294,7 @@ export class LanguageManager {
             imageUrlInput.placeholder = this.get('serverDialog.placeholder');
         }
     }
-    
+
     /**
      * Apply tooltip translations
      * @private
@@ -313,7 +309,7 @@ export class LanguageManager {
             'invertBtn': 'tooltips.invertImage',
             'resetBtn': 'tooltips.resetAdjustments'
         };
-        
+
         for (const [id, key] of Object.entries(tooltipMappings)) {
             const element = document.getElementById(id);
             if (element) {
@@ -321,7 +317,7 @@ export class LanguageManager {
             }
         }
     }
-    
+
     /**
      * Setup language selector UI
      * @private
@@ -330,19 +326,20 @@ export class LanguageManager {
         // Create language selector if it doesn't exist
         let selector = document.getElementById('languageSelector');
         if (!selector) {
-            selector = this.createLanguageSelector();
-            document.querySelector('.header').appendChild(selector);
+            const container = this.createLanguageSelector();
+            document.querySelector('.header').appendChild(container);
+            selector = container.querySelector('select');
         }
-        
+
         // Update selector value
         selector.value = this.currentLanguage;
-        
+
         // Add change event listener
         selector.addEventListener('change', (e) => {
             this.setLanguage(e.target.value);
         });
     }
-    
+
     /**
      * Create language selector element
      * @private
@@ -351,11 +348,12 @@ export class LanguageManager {
         const container = document.createElement('div');
         container.className = 'language-selector';
         container.style.cssText = 'margin-left: auto; display: flex; align-items: center; gap: 10px;';
-        
+
         const icon = document.createElement('span');
+        // FIX: Replaced corrupted text with a proper globe emoji icon.
         icon.textContent = '🌐';
         icon.style.fontSize = '20px';
-        
+
         const select = document.createElement('select');
         select.id = 'languageSelector';
         select.className = 'language-select';
@@ -368,7 +366,7 @@ export class LanguageManager {
             cursor: pointer;
             font-size: 14px;
         `;
-        
+
         // Add options
         this.getSupportedLanguages().forEach(lang => {
             const option = document.createElement('option');
@@ -376,13 +374,13 @@ export class LanguageManager {
             option.textContent = lang.name;
             select.appendChild(option);
         });
-        
+
         container.appendChild(icon);
         container.appendChild(select);
-        
+
         return container;
     }
-    
+
     /**
      * Show a translated message/alert
      * @param {string} messageKey - Translation key for the message
@@ -392,7 +390,7 @@ export class LanguageManager {
         const message = this.get(messageKey, params);
         alert(message);
     }
-    
+
     /**
      * Show a translated hint
      * @param {string} hintKey - Translation key for the hint
@@ -402,7 +400,7 @@ export class LanguageManager {
         if (hint) {
             hint.textContent = this.get(hintKey);
             hint.classList.add('visible');
-            
+
             setTimeout(() => {
                 hint.classList.remove('visible');
             }, 1500);

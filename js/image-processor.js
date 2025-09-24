@@ -141,29 +141,6 @@ export class ImageProcessor {
     }
     
     /**
-     * Apply Gaussian blur (for future implementation)
-     * @param {ImageData} imageData - Image data to blur
-     * @param {number} radius - Blur radius
-     * @returns {ImageData} Blurred image data
-     */
-    applyGaussianBlur(imageData, radius) {
-        // TODO: Implement Gaussian blur for noise reduction
-        console.warn('Gaussian blur not yet implemented');
-        return imageData;
-    }
-    
-    /**
-     * Apply histogram equalization (for future implementation)
-     * @param {ImageData} imageData - Image data to equalize
-     * @returns {ImageData} Equalized image data
-     */
-    applyHistogramEqualization(imageData) {
-        // TODO: Implement histogram equalization for contrast enhancement
-        console.warn('Histogram equalization not yet implemented');
-        return imageData;
-    }
-    
-    /**
      * Calculate image histogram
      * @param {ImageData} imageData - Image data to analyze
      * @returns {Object} Histogram data for RGB channels
@@ -193,5 +170,28 @@ export class ImageProcessor {
         }
         
         return histogram;
+    }
+    
+    /**
+     * Apply Gaussian blur (for future implementation)
+     * @param {ImageData} imageData - Image data to blur
+     * @param {number} radius - Blur radius
+     * @returns {ImageData} Blurred image data
+     */
+    applyGaussianBlur(imageData, radius) {
+        // TODO: Implement Gaussian blur for noise reduction
+        console.warn('Gaussian blur not yet implemented');
+        return imageData;
+    }
+    
+    /**
+     * Apply histogram equalization (for future implementation)
+     * @param {ImageData} imageData - Image data to equalize
+     * @returns {ImageData} Equalized image data
+     */
+    applyHistogramEqualization(imageData) {
+        // TODO: Implement histogram equalization for contrast enhancement
+        console.warn('Histogram equalization not yet implemented');
+        return imageData;
     }
 }

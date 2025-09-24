@@ -50,9 +50,9 @@ tmp/
 # images/*.jpeg
 # images/*.gif
 
-# Keep the images directory but ignore its contents except file_list.json
+# Keep the images directory but ignore its contents except file_list.json.example
 images/*
-!images/file_list.json
+!images/file_list.json.example
 !images/.gitkeep
 
 # Python (if running local server)

@@ -5,6 +5,8 @@
       "openImage": "Open Image",
       "loadServer": "Load from Server",
       "invert": "Invert",
+      "histogram": "Histogram",
+      "hideHistogram": "Hide Histogram",
       "reset": "Reset",
       "loadUrl": "Load by URL",
       "scanImages": "Browse Server Images",
@@ -16,25 +18,26 @@
       "contrast": "Contrast",
       "edge": "Edge",
       "image": "Image",
-      "size": "Size"
+      "size": "Size",
+      "luminanceHistogram": "Luminance Histogram"
     },
     "instructions": {
       "title": "Load a Radiograph",
       "subtitle": "Click \"Open Image\", drag file here, or \"Load from Server\"",
       "mouseControls": "Mouse Controls",
       "touchControls": "Touch Controls",
-      "mouseDetails": "Left-drag: Pan | Wheel: Zoom | Middle-drag: Adjust",
-      "touchDetails": "1-finger: Pan | Pinch: Zoom | 2-finger: Adjust"
+      "mouseDetails": "• Left-drag: Pan | Wheel: Zoom | Middle-drag: Adjust",
+      "touchDetails": "• 1-finger: Pan | Pinch: Zoom | 2-finger: Adjust"
     },
     "serverDialog": {
       "title": "Load from Server",
       "placeholder": "Enter filename (e.g., chest.jpg) or full URL",
       "examples": "Examples",
-      "exampleLocal": "chest.jpg → loads ./images/chest.jpg",
-      "exampleUrl": "https://example.com/image.jpg"
+      "exampleLocal": "• chest.jpg → loads ./images/chest.jpg",
+      "exampleUrl": "• https://example.com/image.jpg"
     },
     "hints": {
-      "brightness": "Brightness (↔) / Contrast (↕)",
+      "brightness": "Brightness (←→) / Contrast (↕)",
       "zoom": "Zoom (↕)",
       "dropImage": "Drop image here"
     },
@@ -58,7 +61,9 @@
       "openFile": "Open local image file",
       "loadServer": "Load image from server",
       "invertImage": "Invert image colors",
-      "resetAdjustments": "Reset all adjustments to default"
+      "showHistogram": "Show brightness histogram",
+      "hideHistogram": "Hide brightness histogram",
+      "resetAdjustments": "Reset all adjustments and zoom to default"
     },
     "keyboard": {
       "title": "Keyboard Shortcuts",
@@ -76,6 +81,8 @@
       "openImage": "Åpne bilde",
       "loadServer": "Last fra server",
       "invert": "Inverter",
+      "histogram": "Histogram",
+      "hideHistogram": "Skjul histogram",
       "reset": "Tilbakestill",
       "loadUrl": "Last fra URL",
       "scanImages": "Bla gjennom serverbilder",
@@ -87,25 +94,26 @@
       "contrast": "Kontrast",
       "edge": "Kant",
       "image": "Bilde",
-      "size": "Størrelse"
+      "size": "Størrelse",
+      "luminanceHistogram": "Lysstyrke-histogram"
     },
     "instructions": {
       "title": "Last inn et røntgenbilde",
       "subtitle": "Klikk \"Åpne bilde\", dra fil hit, eller \"Last fra server\"",
       "mouseControls": "Musekontroller",
       "touchControls": "Berøringskontroller",
-      "mouseDetails": "Venstre-dra: Panorer | Hjul: Zoom | Midten-dra: Juster",
-      "touchDetails": "1-finger: Panorer | Klyp: Zoom | 2-finger: Juster"
+      "mouseDetails": "• Venstre-dra: Panorer | Hjul: Zoom | Midten-dra: Juster",
+      "touchDetails": "• 1-finger: Panorer | Klyp: Zoom | 2-finger: Juster"
     },
     "serverDialog": {
       "title": "Last fra server",
       "placeholder": "Skriv inn filnavn (f.eks. chest.jpg) eller full URL",
       "examples": "Eksempler",
-      "exampleLocal": "chest.jpg → laster ./images/chest.jpg",
-      "exampleUrl": "https://example.com/image.jpg"
+      "exampleLocal": "• chest.jpg → laster ./images/chest.jpg",
+      "exampleUrl": "• https://example.com/image.jpg"
     },
     "hints": {
-      "brightness": "Lysstyrke (↔) / Kontrast (↕)",
+      "brightness": "Lysstyrke (←→) / Kontrast (↕)",
       "zoom": "Zoom (↕)",
       "dropImage": "Slipp bildet her"
     },
@@ -129,7 +137,9 @@
       "openFile": "Åpne lokal bildefil",
       "loadServer": "Last bilde fra server",
       "invertImage": "Inverter bildefarger",
-      "resetAdjustments": "Tilbakestill alle justeringer til standard"
+      "showHistogram": "Vis lysstyrke-histogram",
+      "hideHistogram": "Skjul lysstyrke-histogram",
+      "resetAdjustments": "Tilbakestill alle justeringer og zoom til standard"
     },
     "keyboard": {
       "title": "Tastatursnarveier",

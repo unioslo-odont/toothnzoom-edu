@@ -16,31 +16,23 @@ let viewer = null;
  */
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing Radiograph Viewer...');
-    
+
     try {
-        // Initialize language manager first and wait for it to complete
+        // Initialize language manager first
         await languageManager.init();
-        console.log('Language manager initialized:', languageManager.getCurrentLanguage());
-        
-        // Small delay to ensure DOM is fully ready
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         // Create the main viewer instance
         viewer = new RadiographViewer('imageCanvas');
-        
+
         // Setup all control handlers
         setupControls(viewer);
-        
+
         // Setup UI utility handlers
         setupUIHandlers(viewer);
-        
-        // Make viewer and language manager globally accessible for debugging
+
+        // Make viewer globally accessible for debugging
         window.radiographViewer = viewer;
-        window.languageManager = languageManager;
-        
-        // Force re-apply translations to ensure all elements are updated
-        await languageManager.applyTranslations();
-        
+
         console.log('Radiograph Viewer initialized successfully');
     } catch (error) {
         console.error('Failed to initialize Radiograph Viewer:', error);
@@ -53,11 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.addEventListener('resize', () => {
     if (viewer && viewer.hasImage()) {
         viewer.resetView();
+        viewer.processImage(); // Repaint the image after resizing the window
     }
 });
 
 /**
- * Prevent accidental navigation away with unsaved changes
+ * Prevent accidental navigation away
  */
 window.addEventListener('beforeunload', (e) => {
     if (viewer && viewer.hasImage() && viewer.hasUnsavedChanges()) {
