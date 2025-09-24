@@ -1,0 +1,144 @@
+{
+  "en": {
+    "name": "English",
+    "buttons": {
+      "openImage": "Open Image",
+      "loadServer": "Load from Server",
+      "invert": "Invert",
+      "reset": "Reset",
+      "loadUrl": "Load by URL",
+      "scanImages": "Browse Server Images",
+      "close": "Close"
+    },
+    "labels": {
+      "zoom": "Zoom",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "edge": "Edge",
+      "image": "Image",
+      "size": "Size"
+    },
+    "instructions": {
+      "title": "Load a Radiograph",
+      "subtitle": "Click \"Open Image\", drag file here, or \"Load from Server\"",
+      "mouseControls": "Mouse Controls",
+      "touchControls": "Touch Controls",
+      "mouseDetails": "Left-drag: Pan | Wheel: Zoom | Middle-drag: Adjust",
+      "touchDetails": "1-finger: Pan | Pinch: Zoom | 2-finger: Adjust"
+    },
+    "serverDialog": {
+      "title": "Load from Server",
+      "placeholder": "Enter filename (e.g., chest.jpg) or full URL",
+      "examples": "Examples",
+      "exampleLocal": "chest.jpg → loads ./images/chest.jpg",
+      "exampleUrl": "https://example.com/image.jpg"
+    },
+    "hints": {
+      "brightness": "Brightness (↔) / Contrast (↕)",
+      "zoom": "Zoom (↕)",
+      "dropImage": "Drop image here"
+    },
+    "messages": {
+      "loadFailed": "Failed to load image",
+      "invalidImage": "Invalid image file",
+      "noUrl": "Please enter a URL or filename",
+      "scanning": "Scanning for images...",
+      "scanningButton": "Scanning...",
+      "foundImages": "Found {count} images",
+      "scanFailed": "Scan Failed",
+      "noImages": "No images found",
+      "noImagesDetail": "Ensure ./images/file_list.json is correct",
+      "serverError": "Could not load server images",
+      "unsavedChanges": "You have unsaved image adjustments. Are you sure you want to leave?"
+    },
+    "tooltips": {
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "resetZoom": "Reset Zoom",
+      "openFile": "Open local image file",
+      "loadServer": "Load image from server",
+      "invertImage": "Invert image colors",
+      "resetAdjustments": "Reset all adjustments to default"
+    },
+    "keyboard": {
+      "title": "Keyboard Shortcuts",
+      "zoomIn": "+ or = : Zoom in",
+      "zoomOut": "- : Zoom out",
+      "resetZoom": "0 : Reset zoom",
+      "invert": "I : Toggle invert",
+      "reset": "Ctrl+R : Reset all",
+      "pan": "Arrow keys : Pan image"
+    }
+  },
+  "no": {
+    "name": "Norsk",
+    "buttons": {
+      "openImage": "Åpne bilde",
+      "loadServer": "Last fra server",
+      "invert": "Inverter",
+      "reset": "Tilbakestill",
+      "loadUrl": "Last fra URL",
+      "scanImages": "Bla gjennom serverbilder",
+      "close": "Lukk"
+    },
+    "labels": {
+      "zoom": "Zoom",
+      "brightness": "Lysstyrke",
+      "contrast": "Kontrast",
+      "edge": "Kant",
+      "image": "Bilde",
+      "size": "Størrelse"
+    },
+    "instructions": {
+      "title": "Last inn et røntgenbilde",
+      "subtitle": "Klikk \"Åpne bilde\", dra fil hit, eller \"Last fra server\"",
+      "mouseControls": "Musekontroller",
+      "touchControls": "Berøringskontroller",
+      "mouseDetails": "Venstre-dra: Panorer | Hjul: Zoom | Midten-dra: Juster",
+      "touchDetails": "1-finger: Panorer | Klyp: Zoom | 2-finger: Juster"
+    },
+    "serverDialog": {
+      "title": "Last fra server",
+      "placeholder": "Skriv inn filnavn (f.eks. chest.jpg) eller full URL",
+      "examples": "Eksempler",
+      "exampleLocal": "chest.jpg → laster ./images/chest.jpg",
+      "exampleUrl": "https://example.com/image.jpg"
+    },
+    "hints": {
+      "brightness": "Lysstyrke (↔) / Kontrast (↕)",
+      "zoom": "Zoom (↕)",
+      "dropImage": "Slipp bildet her"
+    },
+    "messages": {
+      "loadFailed": "Kunne ikke laste bildet",
+      "invalidImage": "Ugyldig bildefil",
+      "noUrl": "Vennligst skriv inn en URL eller filnavn",
+      "scanning": "Søker etter bilder...",
+      "scanningButton": "Søker...",
+      "foundImages": "Fant {count} bilder",
+      "scanFailed": "Søk mislyktes",
+      "noImages": "Ingen bilder funnet",
+      "noImagesDetail": "Sjekk at ./images/file_list.json er korrekt",
+      "serverError": "Kunne ikke laste serverbilder",
+      "unsavedChanges": "Du har ulagrede bildejusteringer. Er du sikker på at du vil forlate?"
+    },
+    "tooltips": {
+      "zoomIn": "Zoom inn",
+      "zoomOut": "Zoom ut",
+      "resetZoom": "Tilbakestill zoom",
+      "openFile": "Åpne lokal bildefil",
+      "loadServer": "Last bilde fra server",
+      "invertImage": "Inverter bildefarger",
+      "resetAdjustments": "Tilbakestill alle justeringer til standard"
+    },
+    "keyboard": {
+      "title": "Tastatursnarveier",
+      "zoomIn": "+ eller = : Zoom inn",
+      "zoomOut": "- : Zoom ut",
+      "resetZoom": "0 : Tilbakestill zoom",
+      "invert": "I : Veksle invertering",
+      "reset": "Ctrl+R : Tilbakestill alt",
+      "pan": "Piltaster : Panorer bilde"
+    }
+  }
+}

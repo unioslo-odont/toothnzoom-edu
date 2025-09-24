@@ -1,0 +1,46 @@
+{
+  "name": "radiograph-viewer",
+  "version": "1.0.0",
+  "description": "Radiograph viewer with pure black background for medical education - features multi-language support, real-time image processing, and clinical-grade controls",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -c-1",
+    "serve": "python -m http.server 8000",
+    "dev": "npx live-server --port=8000",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [
+    "radiograph",
+    "medical",
+    "imaging",
+    "viewer",
+    "education",
+    "xray",
+    "dicom",
+    "canvas",
+    "image-processing"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/radiograph-viewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/radiograph-viewer/issues"
+  },
+  "homepage": "https://github.com/yourusername/radiograph-viewer#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ]
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Radiograph Image Viewer</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header with controls -->
+    <header class="header">
+        <button class="file-button" id="openFileBtn">
+            Open Image
+        </button>
+        <button class="file-button" id="loadServerBtn">
+            Load from Server
+        </button>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        
+        <div class="controls">
+            <!-- Zoom Display -->
+            <div class="control-group">
+                <label>Zoom:</label>
+                <span id="zoomDisplay">100%</span>
+            </div>
+            
+            <!-- Brightness Control -->
+            <div class="control-group">
+                <label>Brightness:</label>
+                <input type="range" id="brightness" min="-100" max="100" value="0">
+                <span id="brightnessValue">0</span>
+            </div>
+            
+            <!-- Contrast Control -->
+            <div class="control-group">
+                <label>Contrast:</label>
+                <input type="range" id="contrast" min="-100" max="100" value="0">
+                <span id="contrastValue">0</span>
+            </div>
+            
+            <!-- Edge Enhancement Control -->
+            <div class="control-group">
+                <label>Edge:</label>
+                <input type="range" id="edgeEnhancement" min="0" max="10" value="0" step="0.1">
+                <span id="edgeValue">0</span>
+            </div>
+
+            <!-- Tool Buttons -->
+            <button class="tool-button" id="invertBtn">Invert</button>
+            <button class="reset-button" id="resetBtn">Reset</button>
+        </div>
+    </header>
+    
+    <!-- Main Viewer Container -->
+    <main class="viewer-container">
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <canvas id="imageCanvas"></canvas>
+        </div>
+        
+        <!-- Instructions Panel -->
+        <div class="instructions" id="instructions">
+            <h2>Load a Radiograph</h2>
+            <p>Click "Open Image", drag file here, or "Load from Server"</p>
+            <small>
+                <strong>Mouse Controls:</strong><br>
+                • Left-drag: Pan | Wheel: Zoom | Middle-drag: Adjust<br>
+                <strong>Touch Controls:</strong><br>
+                • 1-finger: Pan | Pinch: Zoom | 2-finger: Adjust
+            </small>
+        </div>
+        
+        <!-- Zoom Control Buttons -->
+        <div class="zoom-controls">
+            <button class="zoom-button" id="zoomInBtn" title="Zoom In">+</button>
+            <button class="zoom-button" id="zoomOutBtn" title="Zoom Out">−</button>
+            <button class="zoom-button" id="resetZoomBtn" title="Reset Zoom">⌂</button>
+        </div>
+        
+        <!-- Info Panel -->
+        <div class="info-panel" id="infoPanel" style="display: none;">
+            <div>Image: <span id="imageName"></span></div>
+            <div>Size: <span id="imageSize"></span></div>
+            <div>Zoom: <span id="infoZoom">100%</span></div>
+        </div>
+        
+        <!-- Mouse Hint -->
+        <div class="mouse-hint" id="mouseHint"></div>
+        
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+            Drop image here
+        </div>
+    </main>
+    
+    <!-- Server Load Dialog -->
+    <div class="url-input" id="urlInput">
+        <h3>Load from Server</h3>
+        <input type="text" id="imageUrl" placeholder="Enter filename (e.g., chest.jpg) or full URL">
+        <button id="loadUrlBtn">Load by URL</button>
+        
+        <div class="scan-section">
+            <button id="scanImagesBtn">Browse Server Images</button>
+            <div id="thumbnailGrid" class="thumbnail-grid" style="display: none;">
+                <!-- Thumbnails will be dynamically inserted here -->
+            </div>
+        </div>
+        
+        <button class="close-btn" id="closeUrlBtn">Close</button>
+        <div class="url-examples">
+            Examples:<br>
+            • chest.jpg → loads ./images/chest.jpg<br>
+            • https://example.com/image.jpg
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
