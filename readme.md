@@ -2,6 +2,8 @@
 
 A pedagogical tool designed specifically for dental education in oral radiology. This viewer allows instructors to provide radiographic examples to students and enables basic image manipulation for educational purposes.
 
+<img src="docs/tooth-n-zoom-screenshot.png" alt="Screenshot" width="600">
+
 **Educational Tool Notice**: This viewer is strictly an educational tool for teaching oral radiology concepts. It is **NOT** intended for clinical diagnosis or patient care. Always use certified medical imaging software for clinical applications.
 
 ## Purpose & Scope
