@@ -71,7 +71,7 @@ export class RadiographViewer {
 
                 img.onload = () => {
                     this.setImage(img);
-                    this.updateInfo(file.name, `${img.width} × ${img.height}px`);
+                    this.updateInfo(file.name, `${img.width} x ${img.height}px`);
                     resolve();
                 };
 
@@ -102,7 +102,7 @@ export class RadiographViewer {
             img.onload = () => {
                 const filename = url.split('/').pop() || 'image';
                 this.setImage(img);
-                this.updateInfo(filename, `${img.width} × ${img.height}px`);
+                this.updateInfo(filename, `${img.width} x ${img.height}px`);
                 resolve();
             };
 
