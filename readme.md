@@ -22,10 +22,38 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 
 ### Core Functionality
 - **Image Loading**: Upload, drag & drop, server browser, URL loading
-- **Image Adjustments**: Brightness, contrast, edge enhancement, inversion
-- **Histogram Display**: Luminance distribution analysis
+- **Advanced Image Adjustments**: 
+  - Brightness control (-100 to +100)
+  - Enhanced contrast range with extreme black/white mode
+  - Edge enhancement filter
+  - Image inversion
+- **Interactive Histogram Display**:
+  - Luminance distribution visualization
+  - Real-time transfer curve overlay showing brightness/contrast mapping
+  - Draggable panel for flexible positioning
 - **Zoom & Pan**: Detailed examination (10% to 1000% zoom)
 - **Multi-language Support**: English and Norwegian
+
+### Image Processing Capabilities
+
+#### Contrast Enhancement
+The contrast control now features two distinct modes:
+- **Normal Range (-100 to 50)**: Traditional contrast adjustment
+  - -100: Completely flat (all pixels become middle gray)
+  - 0: No adjustment
+  - 50: Enhanced contrast with preserved tonal range
+- **Extreme Mode (50 to 100)**: Threshold-based processing
+  - 50-95: Progressive sigmoid curve creating dramatic contrast
+  - 95-100: Near-binary black/white threshold effect
+
+#### Histogram & Transfer Curve
+- **Luminance Histogram**: Shows the distribution of brightness values (0-255)
+- **Transfer Curve** (green overlay): Real-time visualization of how input values map to output values
+  - Diagonal line = no adjustment
+  - Curve above diagonal = brightening
+  - Curve below diagonal = darkening
+  - Steep curve = high contrast
+  - Flat curve = low contrast
 
 ### Controls
 
@@ -47,6 +75,10 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 - `I`: Toggle invert
 - `Ctrl+R`: Reset all adjustments
 - Arrow keys: Pan
+
+**Histogram Panel**:
+- Click and drag to reposition anywhere on screen
+- Toggle visibility with Histogram button
 
 ## Quick Start
 
@@ -79,8 +111,8 @@ dental-radiograph-viewer/
 ├── js/
 │   ├── app.js             # Application initialization
 │   ├── viewer.js          # Core viewing functionality
-│   ├── image-processor.js # Image manipulation
-│   ├── controls.js        # User interaction
+│   ├── image-processor.js # Image manipulation algorithms
+│   ├── controls.js        # User interaction handlers
 │   ├── utils.js           # Helper functions
 │   ├── language-manager.js # i18n support
 │   └── languages.json     # Translations
@@ -98,6 +130,24 @@ The **pure black background** (#000000) serves important pedagogical purposes:
 - Minimizes distractions
 - Familiarizes students with professional standards
 
+## Understanding the Histogram
+
+The histogram display provides two key pieces of information:
+
+1. **Luminance Distribution** (white bars):
+   - X-axis: Pixel brightness values (0 = black, 255 = white)
+   - Y-axis: Frequency of pixels at each brightness level
+   - Helps identify exposure issues:
+     - Left-heavy: Underexposed
+     - Right-heavy: Overexposed
+     - Well-distributed: Good tonal range
+
+2. **Transfer Curve** (green line):
+   - Shows the mathematical transformation applied by brightness/contrast adjustments
+   - Input values (horizontal) mapped to output values (vertical)
+   - Useful for understanding how adjustments affect the image
+   - At extreme contrast settings, approaches a step function for threshold effects
+
 ## System Requirements
 
 - Modern web browser (Chrome, Firefox, Safari, Edge)
@@ -113,12 +163,15 @@ The **pure black background** (#000000) serves important pedagogical purposes:
 - Interactive anatomy review
 - Pathology identification practice
 - Student case presentations
+- Teaching histogram interpretation
+- Demonstrating the effects of image processing
 
 ### Self-Study
 - Exam preparation
 - Practice sessions
 - Homework assignments
 - Research projects
+- Understanding image processing concepts
 
 ## Customization
 
@@ -127,8 +180,8 @@ Adjust sensitivity in `js/controls.js`:
 ```javascript
 export const CONFIG = {
     ZOOM_WHEEL_FACTOR: 1.1,      // Zoom speed
-    BRIGHTNESS_SENSITIVITY: 0.5,  // Brightness rate
-    CONTRAST_SENSITIVITY: 0.5,    // Contrast rate
+    BRIGHTNESS_SENSITIVITY: 0.5,  // Brightness adjustment rate
+    CONTRAST_SENSITIVITY: 0.5,    // Contrast adjustment rate
     MAX_ZOOM: 10,                // Maximum zoom (1000%)
     MIN_ZOOM: 0.1                // Minimum zoom (10%)
 };
@@ -145,12 +198,38 @@ export const CONFIG = {
 - Authentication may block JSON file loading
 - Use local file upload instead ("Open Image" button)
 
+**Transfer curve not visible**:
+- Ensure browser cache is cleared (Ctrl+F5 or Cmd+Shift+R)
+- Verify both `viewer.js` and `image-processor.js` are updated
+- Check browser console for JavaScript errors
+
+## Technical Notes
+
+### Image Processing Algorithm
+The viewer uses different algorithms based on the contrast setting:
+- **Standard mode**: Linear contrast adjustment with preserved color relationships
+- **Extreme mode**: Luminance-based sigmoid transformation for dramatic effects
+- All processing is done in real-time on the canvas
+
+### Performance Considerations
+- Large images (>4MP) may show slight lag during real-time adjustments
+- Edge enhancement is computationally intensive and may affect performance
+- Histogram updates automatically when adjustments are made
+
 ## Important Disclaimers
 
 1. **Educational Use Only**: Designed exclusively for teaching oral radiology
 2. **Not for Diagnosis**: Never use for clinical diagnosis or treatment
 3. **Student Practice Tool**: For supervised educational activities only
 4. **No Patient Data**: Use only teaching materials or properly anonymized images
+
+## Version History
+
+### Latest Update
+- Enhanced contrast range with extreme black/white threshold mode
+- Added real-time transfer curve visualization in histogram
+- Made histogram panel draggable for flexible positioning
+- Improved contrast algorithm for better radiograph enhancement
 
 ## License
 

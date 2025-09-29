@@ -171,7 +171,7 @@ export class RadiographViewer {
     }
     
     /**
-     * FIXED: Complete reset - both view and adjustments
+     * Complete reset - both view and adjustments
      */
     resetAll() {
         this.resetView();
@@ -209,7 +209,7 @@ export class RadiographViewer {
         this.updateZoomDisplay();
         this.updateCanvasTransform();
         
-        // FIXED: Draw the image after setting up the view
+        // Draw the image after setting up the view
         this.processImage();
     }
     
@@ -287,7 +287,7 @@ export class RadiographViewer {
     }
     
     /**
-     * Draw histogram in the histogram panel.
+     * Draw histogram in the histogram panel with transfer curve overlay.
      */
     drawHistogram() {
         const canvas = document.getElementById('histogramCanvas');
@@ -303,10 +303,10 @@ export class RadiographViewer {
         const height = canvas.height;
         const maxValue = Math.max(...histData.luminance);
 
-        if (maxValue === 0) return; // Avoid division by zero
+        if (maxValue === 0) return;
 
-        // Draw histogram bars
-        ctx.fillStyle = '#ffffff';
+        // Draw histogram bars (transparent white)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let i = 0; i < 256; i++) {
             const barHeight = (histData.luminance[i] / maxValue) * height * 0.8;
             const x = (i / 255) * width;
@@ -334,6 +334,84 @@ export class RadiographViewer {
             ctx.lineTo(width, y);
             ctx.stroke();
         }
+
+        // Draw transfer curve showing brightness/contrast mapping
+        ctx.strokeStyle = '#00ff00'; // Green curve
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        const brightness = this.brightness;
+        const contrast = this.contrast;
+
+        // Draw the transfer function - must match the image processing algorithm
+        for (let input = 0; input <= 255; input++) {
+            let output = input;
+
+            // This must match the applyBrightnessContrast method exactly
+            if (contrast > 50) {
+                // Extreme contrast mode
+                const threshold = 128 - ((contrast - 50) * 2.36);
+                const smoothing = Math.max(1, 100 - contrast);
+                
+                // For the curve, we need to simulate what happens to a grayscale pixel
+                const adjustedValue = input + brightness;
+                
+                if (contrast >= 95) {
+                    // Hard threshold
+                    output = adjustedValue > threshold ? 255 : 0;
+                } else {
+                    // Sigmoid curve
+                    const k = smoothing / 10;
+                    const sigmoidInput = (adjustedValue - threshold) / k;
+                    output = 255 / (1 + Math.exp(-sigmoidInput));
+                }
+            } else {
+                // Normal contrast mode
+                const contrastFactor = contrast <= 0 
+                    ? (contrast + 100) / 100
+                    : 1 + (contrast / 50) * 3;
+                
+                output = ((input - 128) * contrastFactor) + 128 + brightness;
+            }
+
+            // Clamp output to valid range
+            output = Math.max(0, Math.min(255, output));
+
+            // Convert to canvas coordinates
+            const x = (input / 255) * width;
+            const y = height - (output / 255) * height;
+
+            if (input === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+
+        // Draw diagonal reference line (input = output)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        ctx.lineTo(width, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Add axis labels
+        ctx.fillStyle = '#888888';
+        ctx.font = '10px sans-serif';
+        ctx.fillText('0', 2, height - 2);
+        ctx.fillText('255', width - 20, height - 2);
+        ctx.fillText('Input →', width / 2 - 20, height - 2);
+        
+        // Vertical axis label (rotated)
+        ctx.save();
+        ctx.translate(10, height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Output →', -25, 0);
+        ctx.restore();
     }
     
     /**
@@ -347,7 +425,12 @@ export class RadiographViewer {
         }
     }
     
-    // Navigation and view methods
+    /**
+     * Zoom at a specific point
+     * @param {number} pointX - X coordinate to zoom at
+     * @param {number} pointY - Y coordinate to zoom at
+     * @param {number} zoomFactor - Factor to zoom by
+     */
     zoomAtPoint(pointX, pointY, zoomFactor) {
         const newZoom = this.zoom * zoomFactor;
         if (newZoom < CONFIG.MIN_ZOOM || newZoom > CONFIG.MAX_ZOOM) return;
@@ -362,27 +445,50 @@ export class RadiographViewer {
         this.updateCanvasTransform();
     }
 
+    /**
+     * Pan the image
+     * @param {number} deltaX - X distance to pan
+     * @param {number} deltaY - Y distance to pan
+     */
     pan(deltaX, deltaY) {
         this.panX += deltaX;
         this.panY += deltaY;
         this.updateCanvasTransform();
     }
 
+    /**
+     * Update canvas CSS transform
+     * @private
+     */
     updateCanvasTransform() {
         this.canvas.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
     }
 
+    /**
+     * Update zoom display in UI
+     * @private
+     */
     updateZoomDisplay() {
         const percent = Math.round(this.zoom * 100);
         document.getElementById('zoomDisplay').textContent = `${percent}%`;
         document.getElementById('infoZoom').textContent = `${percent}%`;
     }
 
+    /**
+     * Update image info display
+     * @private
+     * @param {string} name - Image name
+     * @param {string} size - Image dimensions
+     */
     updateInfo(name, size) {
         document.getElementById('imageName').textContent = name;
         document.getElementById('imageSize').textContent = size;
     }
 
+    /**
+     * Save original state for change tracking
+     * @private
+     */
     saveOriginalState() {
         this.originalState = {
             brightness: 0,
@@ -392,6 +498,10 @@ export class RadiographViewer {
         };
     }
 
+    /**
+     * Check if there are unsaved changes
+     * @returns {boolean} True if there are unsaved changes
+     */
     hasUnsavedChanges() {
         if (!this.originalState) return false;
         return this.brightness !== this.originalState.brightness ||
@@ -400,14 +510,26 @@ export class RadiographViewer {
                this.isInverted !== this.originalState.isInverted;
     }
 
+    /**
+     * Check if an image is loaded
+     * @returns {boolean} True if image is loaded
+     */
     hasImage() {
         return this.originalImage !== null;
     }
 
+    /**
+     * Get current zoom level
+     * @returns {number} Current zoom level
+     */
     getZoom() {
         return this.zoom;
     }
 
+    /**
+     * Set zoom level
+     * @param {number} zoomLevel - New zoom level
+     */
     setZoom(zoomLevel) {
         this.zoom = Math.max(CONFIG.MIN_ZOOM, Math.min(CONFIG.MAX_ZOOM, zoomLevel));
         this.updateZoomDisplay();

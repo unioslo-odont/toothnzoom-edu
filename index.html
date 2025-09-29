@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Radiograph Image Viewer</title>
 
-    <!-- The entire content of styles.css is now embedded here -->
     <style>
         /**
          * Radiograph Image Viewer - Stylesheet
@@ -24,19 +23,19 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000000; /* Pure black background for optimal radiograph viewing */
-            color: #ffffff; /* White text for maximum contrast */
+            background: #000000;
+            color: #ffffff;
             overflow: hidden;
-            touch-action: none; /* Prevent default touch behaviors */
+            touch-action: none;
         }
 
         /* ===========================
            Header and Controls
            =========================== */
         .header {
-            background: #0a0a0a; /* Near-black for subtle separation */
+            background: #0a0a0a;
             padding: 10px 20px;
-            border-bottom: 1px solid #333333; /* Light gray border */
+            border-bottom: 1px solid #333333;
             display: flex;
             align-items: center;
             gap: 20px;
@@ -56,22 +55,22 @@
             align-items: center;
             gap: 8px;
             padding: 5px 10px;
-            background: #1a1a1a; /* Dark gray for control groups */
+            background: #1a1a1a;
             border-radius: 5px;
-            border: 1px solid #333333; /* Light border for definition */
+            border: 1px solid #333333;
         }
 
         .control-group label {
             font-size: 12px;
             min-width: 45px;
-            color: #e0e0e0; /* Light gray for labels */
+            color: #e0e0e0;
         }
 
         .control-group span {
             min-width: 30px;
             text-align: center;
             font-size: 12px;
-            color: #ffffff; /* Pure white for values */
+            color: #ffffff;
         }
 
         /* ===========================
@@ -80,7 +79,7 @@
         input[type="range"] {
             width: 100px;
             height: 4px;
-            background: #333333; /* Dark gray track */
+            background: #333333;
             outline: none;
             border-radius: 2px;
             cursor: pointer;
@@ -90,11 +89,11 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: #007acc; /* Bright blue for visibility */
+            background: #007acc;
             cursor: pointer;
             border-radius: 50%;
             transition: background 0.2s;
-            border: 1px solid #ffffff; /* White border for contrast */
+            border: 1px solid #ffffff;
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
@@ -122,7 +121,7 @@
         .reset-button, 
         .tool-button {
             background: #007acc;
-            color: #ffffff; /* White text on buttons */
+            color: #ffffff;
             padding: 8px 16px;
             border: none;
             border-radius: 5px;
@@ -130,7 +129,7 @@
             font-size: 14px;
             transition: all 0.2s;
             font-weight: 500;
-            border: 1px solid #0099ff; /* Light blue border */
+            border: 1px solid #0099ff;
         }
 
         .file-button:hover {
@@ -139,7 +138,7 @@
         }
 
         .tool-button {
-            background: #5a5a5a; /* Gray for tool buttons */
+            background: #5a5a5a;
             border: 1px solid #777777;
         }
 
@@ -187,7 +186,7 @@
             width: 100vw;
             height: calc(100vh - 80px);
             overflow: hidden;
-            background: #000000; /* Pure black for image viewing area */
+            background: #000000;
         }
 
         .canvas-container {
@@ -196,7 +195,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000000; /* Pure black */
+            background: #000000;
         }
 
         /* ===========================
@@ -234,30 +233,30 @@
             position: absolute;
             bottom: 10px;
             left: 10px;
-            background: rgba(0, 0, 0, 0.9); /* Black with transparency */
+            background: rgba(0, 0, 0, 0.9);
             padding: 10px 15px;
             border-radius: 5px;
             font-size: 12px;
             pointer-events: none;
             backdrop-filter: blur(10px);
-            border: 1px solid #444444; /* Light gray border */
-            color: #ffffff; /* White text */
+            border: 1px solid #444444;
+            color: #ffffff;
         }
 
         .info-panel div {
             margin: 2px 0;
-            color: #f0f0f0; /* Light gray text */
+            color: #f0f0f0;
         }
 
         /* ===========================
-           Histogram Panel
+           Histogram Panel (Updated with drag handle)
            =========================== */
         .histogram-panel {
             position: absolute;
             top: 10px;
             left: 10px;
             width: 300px;
-            height: 200px;
+            height: 220px;
             background: rgba(0, 0, 0, 0.9);
             border: 1px solid #444444;
             border-radius: 5px;
@@ -265,6 +264,13 @@
             display: none;
             backdrop-filter: blur(10px);
             z-index: 50;
+            cursor: move;
+            user-select: none;
+        }
+
+        .histogram-panel.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
         }
 
         .histogram-panel h3 {
@@ -272,6 +278,7 @@
             font-size: 14px;
             margin-bottom: 10px;
             text-align: center;
+            pointer-events: none;
         }
 
         .histogram-canvas {
@@ -279,6 +286,29 @@
             height: calc(100% - 30px);
             border: 1px solid #333333;
             background: #111111;
+            pointer-events: none;
+        }
+
+        .histogram-legend {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 10px;
+            color: #888888;
+            pointer-events: none;
+        }
+
+        .histogram-legend span {
+            margin-left: 10px;
+        }
+
+        .histogram-legend .curve-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 2px;
+            background: #00ff00;
+            vertical-align: middle;
+            margin-right: 3px;
         }
 
         .instructions {
@@ -287,30 +317,30 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            color: #cccccc; /* Light gray for instructions */
+            color: #cccccc;
             font-size: 16px;
             pointer-events: none;
         }
 
         .instructions h2 {
-            color: #ffffff; /* White for headings */
+            color: #ffffff;
             margin-bottom: 10px;
             font-weight: 300;
         }
 
         .instructions p {
             margin-bottom: 20px;
-            color: #e0e0e0; /* Light gray */
+            color: #e0e0e0;
         }
 
         .instructions small {
             display: block;
             line-height: 1.6;
-            color: #b0b0b0; /* Medium-light gray */
+            color: #b0b0b0;
         }
 
         .instructions strong {
-            color: #ffffff; /* White for emphasis */
+            color: #ffffff;
             display: block;
             margin-top: 10px;
         }
@@ -323,8 +353,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 122, 204, 0.95); /* Blue with high opacity */
-            color: #ffffff; /* White text */
+            background: rgba(0, 122, 204, 0.95);
+            color: #ffffff;
             padding: 8px 12px;
             border-radius: 4px;
             font-size: 14px;
@@ -333,7 +363,7 @@
             transition: opacity 0.2s;
             z-index: 100;
             backdrop-filter: blur(5px);
-            border: 1px solid #0099ff; /* Light blue border */
+            border: 1px solid #0099ff;
         }
 
         .mouse-hint.visible {
@@ -354,8 +384,8 @@
 
         .zoom-button {
             background: rgba(0, 122, 204, 0.8);
-            color: #ffffff; /* White text */
-            border: 1px solid #0099ff; /* Light blue border */
+            color: #ffffff;
+            border: 1px solid #0099ff;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -382,16 +412,16 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 122, 204, 0.9); /* Blue overlay */
+            background: rgba(0, 122, 204, 0.9);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            color: #ffffff; /* White text */
+            color: #ffffff;
             font-size: 24px;
             font-weight: bold;
             backdrop-filter: blur(5px);
-            border: 3px dashed #ffffff; /* White dashed border */
+            border: 3px dashed #ffffff;
         }
 
         .drop-zone.active {
@@ -407,8 +437,8 @@
             left: 10px;
             width: 400px;
             max-height: 500px;
-            background: rgba(10, 10, 10, 0.98); /* Near-black background */
-            border: 1px solid #444444; /* Light gray border */
+            background: rgba(10, 10, 10, 0.98);
+            border: 1px solid #444444;
             border-radius: 5px;
             padding: 15px;
             display: none;
@@ -436,16 +466,16 @@
 
         .url-input h3 {
             margin-bottom: 10px;
-            color: #ffffff; /* White heading */
+            color: #ffffff;
             font-weight: 400;
         }
 
         .url-input input {
             width: 100%;
             padding: 8px;
-            background: #1a1a1a; /* Dark input background */
+            background: #1a1a1a;
             border: 1px solid #555555;
-            color: #ffffff; /* White text */
+            color: #ffffff;
             border-radius: 3px;
             margin-bottom: 10px;
             font-size: 14px;
@@ -458,14 +488,14 @@
         }
 
         .url-input input::placeholder {
-            color: #888888; /* Gray placeholder */
+            color: #888888;
         }
 
         .url-input button {
             width: 100%;
             padding: 8px;
             background: #007acc;
-            color: #ffffff; /* White button text */
+            color: #ffffff;
             border: none;
             border-radius: 3px;
             cursor: pointer;
@@ -488,7 +518,7 @@
 
         .url-examples {
             font-size: 12px;
-            color: #b0b0b0; /* Light gray text */
+            color: #b0b0b0;
             margin-top: 10px;
             line-height: 1.5;
         }
@@ -521,17 +551,17 @@
             max-height: 300px;
             overflow-y: auto;
             padding: 5px;
-            background: #0a0a0a; /* Near-black background */
+            background: #0a0a0a;
             border-radius: 4px;
         }
 
         .thumbnail-item {
             cursor: pointer;
-            border: 2px solid #333333; /* Dark gray border */
+            border: 2px solid #333333;
             border-radius: 4px;
             overflow: hidden;
             transition: all 0.2s;
-            background: #1a1a1a; /* Dark background */
+            background: #1a1a1a;
         }
 
         .thumbnail-item:hover {
@@ -543,7 +573,7 @@
             width: 100%;
             height: 60px;
             object-fit: contain;
-            background-color: #000000; /* Pure black for image background */
+            background-color: #000000;
         }
 
         .thumbnail-label {
@@ -551,7 +581,7 @@
             font-size: 10px;
             text-align: center;
             background: rgba(0, 0, 0, 0.8);
-            color: #ffffff; /* White text */
+            color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -562,7 +592,7 @@
            =========================== */
         .loading {
             text-align: center;
-            color: #00aaff; /* Bright blue for loading */
+            color: #00aaff;
             padding: 20px;
             font-size: 14px;
         }
@@ -576,16 +606,16 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #0a0a0a; /* Near-black track */
+            background: #0a0a0a;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #444444; /* Gray thumb */
+            background: #444444;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #666666; /* Lighter gray on hover */
+            background: #666666;
         }
 
         /* ===========================
@@ -618,13 +648,13 @@
         @media (max-width: 768px) {
             .header {
                 padding: 5px 10px;
-                background: #0a0a0a; /* Maintain dark background */
+                background: #0a0a0a;
             }
             
             .control-group label {
                 min-width: 35px;
                 font-size: 11px;
-                color: #e0e0e0; /* Light gray */
+                color: #e0e0e0;
             }
             
             input[type="range"] {
@@ -640,12 +670,12 @@
                 width: calc(100% - 20px);
                 left: 10px;
                 right: 10px;
-                background: rgba(10, 10, 10, 0.98); /* Dark background maintained */
+                background: rgba(10, 10, 10, 0.98);
             }
             
             .histogram-panel {
                 width: 250px;
-                height: 150px;
+                height: 170px;
             }
         }
 
@@ -654,8 +684,8 @@
            =========================== */
         @media print {
             body {
-                background: #ffffff; /* White for printing */
-                color: #000000; /* Black text for printing */
+                background: #ffffff;
+                color: #000000;
             }
             
             .header,
@@ -780,10 +810,13 @@
             </small>
         </div>
         
-        <!-- Histogram Panel -->
+        <!-- Histogram Panel (Now draggable) -->
         <div class="histogram-panel" id="histogramPanel">
-            <h3>Luminance Histogram</h3>
+            <h3>Luminance Histogram & Transfer Curve</h3>
             <canvas id="histogramCanvas" class="histogram-canvas" width="280" height="160"></canvas>
+            <div class="histogram-legend">
+                <span class="curve-indicator"></span>Transfer Curve
+            </div>
         </div>
         
         <!-- Zoom Control Buttons -->
@@ -829,6 +862,83 @@
             • https://example.com/image.jpg
         </div>
     </div>
+
+    <!-- Add histogram dragging script -->
+    <script>
+        // Histogram panel dragging functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const histogramPanel = document.getElementById('histogramPanel');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                if (e.target === histogramPanel) {
+                    isDragging = true;
+                    histogramPanel.classList.add('dragging');
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+
+                isDragging = false;
+                histogramPanel.classList.remove('dragging');
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    
+                    if (e.type === "touchmove") {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    // Constrain to viewport
+                    const rect = histogramPanel.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width;
+                    const maxY = window.innerHeight - rect.height;
+
+                    if (currentX < 0) currentX = 0;
+                    if (currentY < 0) currentY = 0;
+                    if (currentX > maxX) currentX = maxX;
+                    if (currentY > maxY) currentY = maxY;
+
+                    histogramPanel.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                }
+            }
+
+            // Mouse events
+            histogramPanel.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+
+            // Touch events
+            histogramPanel.addEventListener('touchstart', dragStart);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('touchend', dragEnd);
+        });
+    </script>
 
     <!-- Load JavaScript modules -->
     <script type="module" src="js/app.js"></script>

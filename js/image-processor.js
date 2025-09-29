@@ -43,31 +43,67 @@ export class ImageProcessor {
         return processedData;
     }
     
+ 
     /**
      * Apply brightness and contrast adjustments
      * @private
      * @param {Uint8ClampedArray} data - Image pixel data
-     * @param {number} brightness - Brightness value
-     * @param {number} contrast - Contrast value
+     * @param {number} brightness - Brightness value (-100 to 100)
+     * @param {number} contrast - Contrast value (-100 to 100)
      */
     applyBrightnessContrast(data, brightness, contrast) {
-        // Convert contrast from -100 to 100 range to multiplication factor
-        const contrastFactor = (contrast + 100) / 100;
+        // For extreme contrast values (above 50), use a different algorithm
+        const useExtremeContrast = contrast > 50;
         
-        // Process each pixel
-        for (let i = 0; i < data.length; i += 4) {
-            // Apply to RGB channels (skip alpha)
-            for (let channel = 0; channel < 3; channel++) {
-                let value = data[i + channel];
+        if (useExtremeContrast) {
+            // Map contrast 50-100 to threshold 128-10
+            // Higher contrast = lower threshold (more black/white)
+            const threshold = 128 - ((contrast - 50) * 2.36);
+            const smoothing = Math.max(1, 100 - contrast); // Less smoothing at higher contrast
+            
+            for (let i = 0; i < data.length; i += 4) {
+                // Calculate luminance
+                const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
                 
-                // Apply contrast: adjust distance from middle gray (128)
-                value = ((value - 128) * contrastFactor) + 128;
+                // Apply brightness first
+                const adjustedLum = lum + brightness;
                 
-                // Apply brightness: simple addition
-                value += brightness;
+                // Apply sigmoid-like curve for extreme contrast
+                let value;
+                if (contrast >= 95) {
+                    // Near 100: Hard threshold (true black/white)
+                    value = adjustedLum > threshold ? 255 : 0;
+                } else {
+                    // Smooth transition using sigmoid
+                    const k = smoothing / 10; // Steepness factor
+                    const x = (adjustedLum - threshold) / k;
+                    value = 255 / (1 + Math.exp(-x));
+                }
                 
-                // Clamp to valid range [0, 255]
-                data[i + channel] = Math.max(0, Math.min(255, value));
+                // Apply to all channels equally to maintain grayscale
+                data[i] = value;
+                data[i + 1] = value;
+                data[i + 2] = value;
+            }
+        } else {
+            // Original algorithm for normal contrast range (-100 to 50)
+            const contrastFactor = contrast <= 0 
+                ? (contrast + 100) / 100  // 0 to 1 for negative contrast
+                : 1 + (contrast / 50) * 3;  // 1 to 4 for positive contrast up to 50
+            
+            for (let i = 0; i < data.length; i += 4) {
+                for (let channel = 0; channel < 3; channel++) {
+                    let value = data[i + channel];
+                    
+                    // Apply contrast: adjust distance from middle gray (128)
+                    value = ((value - 128) * contrastFactor) + 128;
+                    
+                    // Apply brightness: simple addition
+                    value += brightness;
+                    
+                    // Clamp to valid range [0, 255]
+                    data[i + channel] = Math.max(0, Math.min(255, value));
+                }
             }
         }
     }
