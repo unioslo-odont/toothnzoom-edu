@@ -4,7 +4,7 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 
 <figure>
   <img src="docs/tooth-n-zoom-screenshot.png" alt="Panoramic radiograph example" width="600">
-  <figcaption>Screenshot (displayed panoramic image from [Wikipedia](https://en.wikipedia.org/wiki/Panoramic_radiograph))</figcaption>
+  <figcaption>Screenshot displaying panoramic image from [Wikipedia](https://en.wikipedia.org/wiki/Panoramic_radiograph)</figcaption>
 </figure>
 
 <p>&nbsp;</p>
