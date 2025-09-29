@@ -9,8 +9,6 @@ A pedagogical tool designed specifically for dental education in oral radiology.
   </em>
 </p>
 
-<p>&nbsp;</p>
-
 **Educational Tool Notice**: This viewer is strictly an educational tool for teaching oral radiology concepts. It is **NOT** intended for clinical diagnosis or patient care. Always use certified medical imaging software for clinical applications.
 
 ## Purpose & Scope
