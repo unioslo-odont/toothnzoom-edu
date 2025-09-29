@@ -2,13 +2,12 @@
 
 A pedagogical tool designed specifically for dental education in oral radiology. This viewer allows instructors to provide radiographic examples to students and enables basic image manipulation for educational purposes.
 
-<figure>
-  <img src="docs/tooth-n-zoom-screenshot.png" alt="Panoramic radiograph example" width="600">
-  <figcaption>Screenshot displaying panoramic image from
+<p>
+  <img src="docs/tooth-n-zoom-screenshot.png" alt="Panoramic radiograph example" width="600"><br>
+  <em>Screenshot displaying panoramic image from
     <a href="https://en.wikipedia.org/wiki/Panoramic_radiograph">Wikipedia</a>
-  </figcaption>
-</figure>
-
+  </em>
+</p>
 
 <p>&nbsp;</p>
 
