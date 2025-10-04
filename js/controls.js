@@ -1,6 +1,6 @@
 /**
  * Radiograph Image Viewer - Controls Module
- * Handles all user input including mouse, touch, and UI controls
+ * ENHANCED: Better event handling, throttling, accessibility
  */
 
 import languageManager from './language-manager.js';
@@ -16,7 +16,8 @@ export const CONFIG = {
     TOUCH_ZOOM_SENSITIVITY: 0.01,
     MAX_ZOOM: 10,
     MIN_ZOOM: 0.1,
-    HINT_DURATION: 1500
+    HINT_DURATION: 1500,
+    WHEEL_THROTTLE: 16 // ~60fps
 };
 
 /**
@@ -31,6 +32,7 @@ export function setupControls(viewer) {
     setupZoomControls(viewer);
     setupDragDropControls(viewer);
     setupHistogramControls(viewer);
+    setupKeyboardShortcuts(viewer);
 }
 
 /**
@@ -38,19 +40,18 @@ export function setupControls(viewer) {
  * @private
  */
 function setupFileControls(viewer) {
-    // File input
     const fileInput = document.getElementById('fileInput');
     fileInput.addEventListener('change', async (e) => {
         if (e.target.files && e.target.files.length > 0) {
             try {
                 await viewer.loadImage(e.target.files[0]);
             } catch (error) {
+                console.error('Failed to load image:', error);
                 languageManager.showMessage('messages.loadFailed');
             }
         }
     });
 
-    // Open file button
     document.getElementById('openFileBtn').addEventListener('click', () => {
         fileInput.click();
     });
@@ -67,6 +68,7 @@ function setupAdjustmentControls(viewer) {
         const value = parseInt(e.target.value, 10);
         viewer.setBrightness(value);
         document.getElementById('brightnessValue').textContent = value;
+        e.target.setAttribute('aria-valuenow', value);
     });
 
     // Contrast slider
@@ -75,6 +77,7 @@ function setupAdjustmentControls(viewer) {
         const value = parseInt(e.target.value, 10);
         viewer.setContrast(value);
         document.getElementById('contrastValue').textContent = value;
+        e.target.setAttribute('aria-valuenow', value);
     });
 
     // Edge enhancement slider
@@ -83,17 +86,19 @@ function setupAdjustmentControls(viewer) {
         const value = parseFloat(e.target.value);
         viewer.setEdgeEnhancement(value);
         document.getElementById('edgeValue').textContent = value.toFixed(1);
+        e.target.setAttribute('aria-valuenow', value);
     });
 
     // Invert button
-    document.getElementById('invertBtn').addEventListener('click', () => {
+    const invertBtn = document.getElementById('invertBtn');
+    invertBtn.addEventListener('click', () => {
         viewer.toggleInvert();
-        document.getElementById('invertBtn').classList.toggle('active');
+        invertBtn.classList.toggle('active');
     });
 
-    // FIXED: Reset button now resets EVERYTHING (view + adjustments)
+    // Reset button - resets EVERYTHING
     document.getElementById('resetBtn').addEventListener('click', () => {
-        viewer.resetAll(); // This resets both view (zoom/pan) and adjustments
+        viewer.resetAll();
     });
 }
 
@@ -102,30 +107,52 @@ function setupAdjustmentControls(viewer) {
  * @private
  */
 function setupHistogramControls(viewer) {
-    // Histogram toggle button
     const histogramBtn = document.getElementById('histogramBtn');
     const histogramPanel = document.getElementById('histogramPanel');
     
     if (histogramBtn && histogramPanel) {
+        // FIX: Ensure initial state is properly set
+        // Panel starts hidden (CSS: display: none)
+        histogramPanel.style.display = 'none';
+        histogramBtn.classList.remove('active');
+        histogramBtn.setAttribute('aria-pressed', 'false');
+        
         histogramBtn.addEventListener('click', () => {
-            const isVisible = histogramPanel.style.display !== 'none';
+            // Check computed style to get actual display value
+            const isVisible = window.getComputedStyle(histogramPanel).display !== 'none';
             
             if (isVisible) {
                 histogramPanel.style.display = 'none';
                 histogramBtn.classList.remove('active');
+                histogramBtn.setAttribute('aria-pressed', 'false');
                 histogramBtn.textContent = languageManager.get('buttons.histogram');
             } else {
                 histogramPanel.style.display = 'block';
                 histogramBtn.classList.add('active');
+                histogramBtn.setAttribute('aria-pressed', 'true');
                 histogramBtn.textContent = languageManager.get('buttons.hideHistogram');
                 
-                // Update histogram when showing
                 if (viewer.hasImage()) {
                     viewer.drawHistogram();
                 }
             }
         });
     }
+}
+
+/**
+ * Throttle function for performance
+ * @private
+ */
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
 }
 
 /**
@@ -150,7 +177,10 @@ class MouseHandler {
         this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
         this.canvas.addEventListener('mouseup', () => this.onMouseUp());
         this.canvas.addEventListener('mouseleave', () => this.onMouseUp());
-        this.canvas.addEventListener('wheel', (e) => this.onWheel(e));
+        
+        // Throttled wheel handler for performance
+        this.canvas.addEventListener('wheel', throttle((e) => this.onWheel(e), CONFIG.WHEEL_THROTTLE));
+        
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
@@ -194,8 +224,14 @@ class MouseHandler {
                 this.viewer.setContrast(newContrast);
 
                 // Update UI
-                document.getElementById('brightness').value = Math.round(this.viewer.brightness);
-                document.getElementById('contrast').value = Math.round(this.viewer.contrast);
+                const brightnessSlider = document.getElementById('brightness');
+                const contrastSlider = document.getElementById('contrast');
+                
+                brightnessSlider.value = Math.round(this.viewer.brightness);
+                contrastSlider.value = Math.round(this.viewer.contrast);
+                brightnessSlider.setAttribute('aria-valuenow', Math.round(this.viewer.brightness));
+                contrastSlider.setAttribute('aria-valuenow', Math.round(this.viewer.contrast));
+                
                 document.getElementById('brightnessValue').textContent = Math.round(this.viewer.brightness);
                 document.getElementById('contrastValue').textContent = Math.round(this.viewer.contrast);
                 break;
@@ -220,22 +256,13 @@ class MouseHandler {
 
     onWheel(e) {
         e.preventDefault();
+        if (!this.viewer.hasImage()) return;
+
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         const zoomFactor = e.deltaY > 0 ? 1 / CONFIG.ZOOM_WHEEL_FACTOR : CONFIG.ZOOM_WHEEL_FACTOR;
         this.viewer.zoomAtPoint(mouseX, mouseY, zoomFactor);
-    }
-
-    showHint(message) {
-        const hint = document.getElementById('mouseHint');
-        hint.textContent = message;
-        hint.classList.add('visible');
-
-        clearTimeout(this.hintTimeout);
-        this.hintTimeout = setTimeout(() => {
-            hint.classList.remove('visible');
-        }, CONFIG.HINT_DURATION);
     }
 }
 
@@ -256,21 +283,19 @@ class TouchHandler {
     }
 
     bindEvents() {
-        this.canvas.addEventListener('touchstart', (e) => this.onTouchStart(e));
-        this.canvas.addEventListener('touchmove', (e) => this.onTouchMove(e));
-        this.canvas.addEventListener('touchend', (e) => this.onTouchEnd(e));
-        this.canvas.addEventListener('touchcancel', (e) => this.onTouchEnd(e));
+        this.canvas.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.onTouchEnd(e), { passive: false });
+        this.canvas.addEventListener('touchcancel', (e) => this.onTouchEnd(e), { passive: false });
     }
 
     onTouchStart(e) {
         e.preventDefault();
 
         if (e.touches.length === 1) {
-            // Single touch - prepare for pan
             this.lastTouchX = e.touches[0].clientX;
             this.lastTouchY = e.touches[0].clientY;
         } else if (e.touches.length === 2) {
-            // Two touches - prepare for pinch or adjust
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             this.initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
@@ -299,7 +324,6 @@ class TouchHandler {
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             const currentDistance = Math.sqrt(dx * dx + dy * dy);
 
-            // Determine gesture type
             const pinchDelta = Math.abs(currentDistance - this.initialPinchDistance);
             const moveDelta = Math.sqrt(
                 Math.pow(currentMidX - this.lastTouchX, 2) +
@@ -327,8 +351,12 @@ class TouchHandler {
                 this.viewer.setContrast(newContrast);
 
                 // Update UI
-                document.getElementById('brightness').value = Math.round(this.viewer.brightness);
-                document.getElementById('contrast').value = Math.round(this.viewer.contrast);
+                const brightnessSlider = document.getElementById('brightness');
+                const contrastSlider = document.getElementById('contrast');
+                
+                brightnessSlider.value = Math.round(this.viewer.brightness);
+                contrastSlider.value = Math.round(this.viewer.contrast);
+                
                 document.getElementById('brightnessValue').textContent = Math.round(this.viewer.brightness);
                 document.getElementById('contrastValue').textContent = Math.round(this.viewer.contrast);
 
@@ -344,16 +372,6 @@ class TouchHandler {
         if (e.touches.length === 0) {
             this.initialPinchDistance = 0;
         }
-    }
-
-    showHint(message) {
-        const hint = document.getElementById('mouseHint');
-        hint.textContent = message;
-        hint.classList.add('visible');
-
-        setTimeout(() => {
-            hint.classList.remove('visible');
-        }, CONFIG.HINT_DURATION);
     }
 }
 
@@ -436,8 +454,116 @@ function setupDragDropControls(viewer) {
             try {
                 await viewer.loadImage(files[0]);
             } catch (error) {
+                console.error('Failed to load dropped image:', error);
                 alert(`Failed to load image: ${error.message}`);
             }
+        }
+    });
+}
+
+/**
+ * Setup keyboard shortcuts
+ * @private
+ */
+function setupKeyboardShortcuts(viewer) {
+    document.addEventListener('keydown', (e) => {
+        // Skip if typing in an input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (!viewer.hasImage() && e.key !== 'h' && e.key !== 'H') return;
+
+        switch (e.key) {
+            case '+':
+            case '=':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    const rect = viewer.canvas.getBoundingClientRect();
+                    viewer.zoomAtPoint(rect.width / 2, rect.height / 2, CONFIG.ZOOM_BUTTON_FACTOR);
+                }
+                break;
+
+            case '-':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    const rect = viewer.canvas.getBoundingClientRect();
+                    viewer.zoomAtPoint(rect.width / 2, rect.height / 2, 1 / CONFIG.ZOOM_BUTTON_FACTOR);
+                }
+                break;
+
+            case '0':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.resetView();
+                }
+                break;
+
+            case '1':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.setZoom(1);
+                }
+                break;
+
+            case 'f':
+            case 'F':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.resetView();
+                }
+                break;
+
+            case 'r':
+            case 'R':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    if (viewer.hasImage()) {
+                        viewer.resetAdjustments();
+                    }
+                }
+                break;
+
+            case 'i':
+            case 'I':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.toggleInvert();
+                    document.getElementById('invertBtn').classList.toggle('active');
+                }
+                break;
+
+            case 'ArrowLeft':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.pan(-20, 0);
+                }
+                break;
+
+            case 'ArrowRight':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.pan(20, 0);
+                }
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.pan(0, -20);
+                }
+                break;
+
+            case 'ArrowDown':
+                e.preventDefault();
+                if (viewer.hasImage()) {
+                    viewer.pan(0, 20);
+                }
+                break;
+
+            case 'Escape':
+                e.preventDefault();
+                // Close any open dialogs
+                document.getElementById('urlInput').classList.remove('visible');
+                break;
         }
     });
 }

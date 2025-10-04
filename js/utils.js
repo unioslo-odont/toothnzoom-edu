@@ -1,6 +1,6 @@
 /**
  * Radiograph Image Viewer - Utility Functions
- * Helper functions and UI utilities
+ * ENHANCED: Better error handling, performance utilities
  */
 
 import languageManager from './language-manager.js';
@@ -11,7 +11,6 @@ import languageManager from './language-manager.js';
  */
 export function setupUIHandlers(viewer) {
     setupServerLoader(viewer);
-    setupKeyboardShortcuts(viewer);
 }
 
 /**
@@ -69,19 +68,14 @@ async function loadFromUrl(viewer) {
     // Handle different URL formats
     let imageUrl;
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-        // Full URL or data URL
         imageUrl = url;
     } else if (url.startsWith('/')) {
-        // Absolute path
         imageUrl = url;
     } else {
-        // Relative path - prepend ./images/
         imageUrl = `./images/${url}`;
 
-        // If running from file:// protocol, try to construct proper path
         if (window.location.protocol === 'file:') {
             console.warn('Running from local file. Image loading may be restricted by browser security.');
-            // Try to use the full file path
             const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
             imageUrl = `${basePath}/images/${url}`;
         }
@@ -92,8 +86,8 @@ async function loadFromUrl(viewer) {
         input.value = '';
         document.getElementById('urlInput').classList.remove('visible');
     } catch (error) {
-        languageManager.showMessage('messages.loadFailed');
         console.error('Failed to load image:', error);
+        languageManager.showMessage('messages.loadFailed');
     }
 }
 
@@ -104,8 +98,9 @@ async function loadFromUrl(viewer) {
 async function scanServerImages(viewer) {
     const grid = document.getElementById('thumbnailGrid');
     const scanBtn = document.getElementById('scanImagesBtn');
+    const originalText = scanBtn.textContent;
 
-    // Show loading state
+    // Disable button and show loading state
     scanBtn.disabled = true;
     scanBtn.textContent = languageManager.get('messages.scanningButton');
     grid.innerHTML = `<div class="loading">${languageManager.get('messages.scanning')}</div>`;
@@ -113,7 +108,6 @@ async function scanServerImages(viewer) {
 
     // Check if running locally
     if (window.location.protocol === 'file:') {
-        // FIX: Replaced corrupted character with a proper warning emoji icon.
         grid.innerHTML = `
             <div class="loading" style="color: #ffaa00;">
                 ⚠️ Running locally - Server browsing requires a web server.<br><br>
@@ -124,14 +118,13 @@ async function scanServerImages(viewer) {
             </div>
         `;
         setTimeout(() => {
-            scanBtn.textContent = languageManager.get('buttons.scanImages');
+            scanBtn.textContent = originalText;
             scanBtn.disabled = false;
         }, 100);
         return;
     }
 
     try {
-        // Try to load file list from server
         const response = await fetch('./images/file_list.json');
 
         if (!response.ok) {
@@ -145,14 +138,11 @@ async function scanServerImages(viewer) {
             return;
         }
 
-        // Load and display thumbnails
         await loadThumbnails(viewer, imageNames);
-
         scanBtn.textContent = languageManager.get('messages.foundImages', { count: imageNames.length });
     } catch (error) {
         console.error('Failed to scan images:', error);
 
-        // Provide helpful error message
         grid.innerHTML = `
             <div class="loading" style="color: #ffaa00;">
                 ${languageManager.get('messages.serverError')}<br><br>
@@ -166,9 +156,8 @@ async function scanServerImages(viewer) {
             </div>
         `;
     } finally {
-        // Reset button after delay
         setTimeout(() => {
-            scanBtn.textContent = languageManager.get('buttons.scanImages');
+            scanBtn.textContent = originalText;
             scanBtn.disabled = false;
         }, 3000);
     }
@@ -184,28 +173,23 @@ async function loadThumbnails(viewer, imageNames) {
     grid.style.display = 'grid';
 
     const loadedImages = [];
-
-    // Load each image
-    for (const name of imageNames) {
-        try {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            const url = `./images/${name}`;
-
-            await new Promise((resolve, reject) => {
-                img.onload = () => {
-                    loadedImages.push({ name, url, image: img });
-                    resolve();
-                };
-                img.onerror = reject;
-                img.src = url;
-            });
-        } catch (error) {
-            console.warn(`Failed to load thumbnail for ${name}:`, error);
-        }
+    const maxConcurrent = 5;
+    
+    // Load images in batches to avoid overwhelming the browser
+    for (let i = 0; i < imageNames.length; i += maxConcurrent) {
+        const batch = imageNames.slice(i, i + maxConcurrent);
+        const promises = batch.map(name => loadThumbnail(name));
+        const results = await Promise.allSettled(promises);
+        
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                loadedImages.push(result.value);
+            } else {
+                console.warn(`Failed to load thumbnail for ${batch[index]}:`, result.reason);
+            }
+        });
     }
 
-    // Display thumbnails
     if (loadedImages.length === 0) {
         grid.innerHTML = `<div class="loading">${languageManager.get('messages.noImages')}</div>`;
         return;
@@ -215,6 +199,9 @@ async function loadThumbnails(viewer, imageNames) {
         const item = document.createElement('div');
         item.className = 'thumbnail-item';
         item.onclick = () => loadServerImage(viewer, imageData);
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', `Load ${imageData.name}`);
 
         const img = document.createElement('img');
         img.className = 'thumbnail-image';
@@ -228,6 +215,36 @@ async function loadThumbnails(viewer, imageNames) {
         item.appendChild(img);
         item.appendChild(label);
         grid.appendChild(item);
+
+        // Keyboard support
+        item.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                loadServerImage(viewer, imageData);
+            }
+        });
+    });
+}
+
+/**
+ * Load a single thumbnail
+ * @private
+ */
+function loadThumbnail(name) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        const url = `./images/${name}`;
+
+        img.onload = () => {
+            resolve({ name, url, image: img });
+        };
+        
+        img.onerror = () => {
+            reject(new Error(`Failed to load ${name}`));
+        };
+        
+        img.src = url;
     });
 }
 
@@ -240,88 +257,9 @@ async function loadServerImage(viewer, imageData) {
         await viewer.loadImageFromUrl(imageData.url);
         document.getElementById('urlInput').classList.remove('visible');
     } catch (error) {
+        console.error('Failed to load server image:', error);
         languageManager.showMessage('messages.loadFailed');
     }
-}
-
-/**
- * Setup keyboard shortcuts
- * @private
- */
-function setupKeyboardShortcuts(viewer) {
-    document.addEventListener('keydown', (e) => {
-        // Skip if typing in an input field
-        if (e.target.tagName === 'INPUT') return;
-
-        if (!viewer.hasImage()) return;
-
-        switch (e.key) {
-            case '+':
-            case '=':
-                // Zoom in
-                e.preventDefault();
-                const rect = viewer.canvas.getBoundingClientRect();
-                viewer.zoomAtPoint(rect.width / 2, rect.height / 2, 1.2);
-                break;
-
-            case '-':
-                // Zoom out
-                e.preventDefault();
-                viewer.zoomAtPoint(
-                    viewer.canvas.width / 2,
-                    viewer.canvas.height / 2,
-                    1 / 1.2
-                );
-                break;
-
-            case '0':
-                // Reset zoom
-                e.preventDefault();
-                viewer.resetView();
-                break;
-
-            case 'r':
-            case 'R':
-                // Reset all adjustments
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    viewer.resetAdjustments();
-                }
-                break;
-
-            case 'i':
-            case 'I':
-                // Toggle invert
-                e.preventDefault();
-                viewer.toggleInvert();
-                document.getElementById('invertBtn').classList.toggle('active');
-                break;
-
-            case 'ArrowLeft':
-                // Pan left
-                e.preventDefault();
-                viewer.pan(-20, 0);
-                break;
-
-            case 'ArrowRight':
-                // Pan right
-                e.preventDefault();
-                viewer.pan(20, 0);
-                break;
-
-            case 'ArrowUp':
-                // Pan up
-                e.preventDefault();
-                viewer.pan(0, -20);
-                break;
-
-            case 'ArrowDown':
-                // Pan down
-                e.preventDefault();
-                viewer.pan(0, 20);
-                break;
-        }
-    });
 }
 
 /**
@@ -392,4 +330,40 @@ export function throttle(func, limit) {
             setTimeout(() => inThrottle = false, limit);
         }
     };
+}
+
+/**
+ * Request animation frame polyfill
+ */
+export const requestAnimFrame = (function() {
+    return window.requestAnimationFrame ||
+           window.webkitRequestAnimationFrame ||
+           window.mozRequestAnimationFrame ||
+           function(callback) {
+               window.setTimeout(callback, 1000 / 60);
+           };
+})();
+
+/**
+ * Validate image file
+ * @param {File} file - File to validate
+ * @throws {Error} If file is invalid
+ */
+export function validateImageFile(file) {
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+    
+    if (!file) {
+        throw new Error('No file provided');
+    }
+    
+    if (file.size > maxSize) {
+        throw new Error('File too large (max 50MB)');
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error('Unsupported file type');
+    }
+    
+    return true;
 }

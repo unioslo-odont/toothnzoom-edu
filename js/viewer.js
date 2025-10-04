@@ -1,6 +1,6 @@
 /**
  * Radiograph Image Viewer - Core Viewer Class
- * Handles the main image viewing functionality, transformations, and state management
+ * FIXED: GPU acceleration for Edge compatibility, performance optimizations
  */
 
 import { ImageProcessor } from './image-processor.js';
@@ -21,7 +21,10 @@ export class RadiographViewer {
             throw new Error(`Canvas element with ID '${canvasId}' not found`);
         }
 
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { 
+            alpha: false,
+            willReadFrequently: true 
+        });
         this.originalImage = null;
         this.imageProcessor = new ImageProcessor();
 
@@ -39,8 +42,34 @@ export class RadiographViewer {
         // Track unsaved changes
         this.originalState = null;
 
+        // Performance optimization flags
+        this.needsRedraw = false;
+        this.isProcessing = false;
+        this.processingQueued = false;
+
+        // Debounced functions
+        this.processImageDebounced = this.debounce(() => {
+            this.processImage();
+        }, 16); // ~60fps
+
         // Initialize
         this.setupCanvas();
+    }
+
+    /**
+     * Debounce utility
+     * @private
+     */
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 
     /**
@@ -50,6 +79,35 @@ export class RadiographViewer {
     setupCanvas() {
         this.canvas.style.transformOrigin = '0 0';
         this.canvas.style.cursor = 'grab';
+    }
+
+    /**
+     * Show loading spinner
+     * @private
+     */
+    showLoading() {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.classList.add('active');
+    }
+
+    /**
+     * Hide loading spinner
+     * @private
+     */
+    hideLoading() {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.classList.remove('active');
+    }
+
+    /**
+     * Announce to screen readers
+     * @private
+     */
+    announceToScreenReader(message) {
+        const liveRegion = document.getElementById('liveRegion');
+        if (liveRegion) {
+            liveRegion.textContent = message;
+        }
     }
 
     /**
@@ -64,6 +122,8 @@ export class RadiographViewer {
                 return;
             }
 
+            this.showLoading();
+
             const reader = new FileReader();
 
             reader.onload = (e) => {
@@ -72,14 +132,22 @@ export class RadiographViewer {
                 img.onload = () => {
                     this.setImage(img);
                     this.updateInfo(file.name, `${img.width} x ${img.height}px`);
+                    this.announceToScreenReader(`Image loaded: ${file.name}, ${img.width} by ${img.height} pixels`);
+                    this.hideLoading();
                     resolve();
                 };
 
-                img.onerror = () => reject(new Error('Failed to load image'));
+                img.onerror = () => {
+                    this.hideLoading();
+                    reject(new Error('Failed to load image'));
+                };
                 img.src = e.target.result;
             };
 
-            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.onerror = () => {
+                this.hideLoading();
+                reject(new Error('Failed to read file'));
+            };
             reader.readAsDataURL(file);
         });
     }
@@ -96,6 +164,8 @@ export class RadiographViewer {
                 return;
             }
 
+            this.showLoading();
+
             const img = new Image();
             img.crossOrigin = 'anonymous';
 
@@ -103,10 +173,15 @@ export class RadiographViewer {
                 const filename = url.split('/').pop() || 'image';
                 this.setImage(img);
                 this.updateInfo(filename, `${img.width} x ${img.height}px`);
+                this.announceToScreenReader(`Image loaded: ${filename}, ${img.width} by ${img.height} pixels`);
+                this.hideLoading();
                 resolve();
             };
 
-            img.onerror = () => reject(new Error('Failed to load image from URL'));
+            img.onerror = () => {
+                this.hideLoading();
+                reject(new Error('Failed to load image from URL'));
+            };
             img.src = url;
         });
     }
@@ -126,13 +201,7 @@ export class RadiographViewer {
         this.isInverted = false;
 
         // Update UI controls to reflect defaults
-        document.getElementById('brightness').value = 0;
-        document.getElementById('contrast').value = 0;
-        document.getElementById('edgeEnhancement').value = 0;
-        document.getElementById('brightnessValue').textContent = '0';
-        document.getElementById('contrastValue').textContent = '0';
-        document.getElementById('edgeValue').textContent = '0';
-        document.getElementById('invertBtn').classList.remove('active');
+        this.updateUIControls();
 
         // Set up the view and draw the image
         this.resetView();
@@ -149,6 +218,28 @@ export class RadiographViewer {
     }
 
     /**
+     * Update UI controls to match current state
+     * @private
+     */
+    updateUIControls() {
+        document.getElementById('brightness').value = this.brightness;
+        document.getElementById('contrast').value = this.contrast;
+        document.getElementById('edgeEnhancement').value = this.edgeEnhancement;
+        document.getElementById('brightnessValue').textContent = Math.round(this.brightness);
+        document.getElementById('contrastValue').textContent = Math.round(this.contrast);
+        document.getElementById('edgeValue').textContent = this.edgeEnhancement.toFixed(1);
+        
+        const invertBtn = document.getElementById('invertBtn');
+        if (this.isInverted) {
+            invertBtn.classList.add('active');
+            invertBtn.setAttribute('aria-pressed', 'true');
+        } else {
+            invertBtn.classList.remove('active');
+            invertBtn.setAttribute('aria-pressed', 'false');
+        }
+    }
+
+    /**
      * Reset all settings to default values and update UI controls.
      */
     resetAdjustments() {
@@ -158,16 +249,12 @@ export class RadiographViewer {
         this.isInverted = false;
 
         // Update UI controls
-        document.getElementById('brightness').value = 0;
-        document.getElementById('contrast').value = 0;
-        document.getElementById('edgeEnhancement').value = 0;
-        document.getElementById('brightnessValue').textContent = '0';
-        document.getElementById('contrastValue').textContent = '0';
-        document.getElementById('edgeValue').textContent = '0';
-        document.getElementById('invertBtn').classList.remove('active');
+        this.updateUIControls();
 
         // Redraw the image with default settings
         this.processImage();
+        
+        this.announceToScreenReader('All adjustments reset to default');
     }
     
     /**
@@ -188,7 +275,7 @@ export class RadiographViewer {
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
 
-        // Set canvas size to match image (this clears the canvas)
+        // Set canvas size to match image
         this.canvas.width = this.originalImage.width;
         this.canvas.height = this.originalImage.height;
 
@@ -211,33 +298,62 @@ export class RadiographViewer {
         
         // Draw the image after setting up the view
         this.processImage();
+        
+        this.announceToScreenReader(`View reset, zoom at ${Math.round(this.zoom * 100)}%`);
     }
     
     /**
      * Process and render the image with current adjustments.
+     * OPTIMIZED: Prevents unnecessary redraws
      */
     processImage() {
         if (!this.originalImage) return;
 
-        // Clear and draw original image
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.drawImage(this.originalImage, 0, 0);
-
-        // Only apply processing if there are actual adjustments to make
-        if (this.brightness !== 0 || this.contrast !== 0 || this.edgeEnhancement !== 0 || this.isInverted) {
-            let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-
-            imageData = this.imageProcessor.process(imageData, {
-                brightness: this.brightness,
-                contrast: this.contrast,
-                edgeEnhancement: this.edgeEnhancement,
-                invert: this.isInverted
-            });
-
-            this.ctx.putImageData(imageData, 0, 0);
+        // Prevent concurrent processing
+        if (this.isProcessing) {
+            this.processingQueued = true;
+            return;
         }
-        
-        this.updateHistogram();
+
+        this.isProcessing = true;
+
+        // Use requestAnimationFrame for smoother rendering
+        requestAnimationFrame(() => {
+            try {
+                // Clear and draw original image
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.drawImage(this.originalImage, 0, 0);
+
+                // Only apply processing if there are actual adjustments
+                const hasAdjustments = this.brightness !== 0 || 
+                                      this.contrast !== 0 || 
+                                      this.edgeEnhancement !== 0 || 
+                                      this.isInverted;
+
+                if (hasAdjustments) {
+                    let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+
+                    imageData = this.imageProcessor.process(imageData, {
+                        brightness: this.brightness,
+                        contrast: this.contrast,
+                        edgeEnhancement: this.edgeEnhancement,
+                        invert: this.isInverted
+                    });
+
+                    this.ctx.putImageData(imageData, 0, 0);
+                }
+                
+                this.updateHistogram();
+            } finally {
+                this.isProcessing = false;
+
+                // Process queued request if any
+                if (this.processingQueued) {
+                    this.processingQueued = false;
+                    this.processImage();
+                }
+            }
+        });
     }
     
     /**
@@ -246,7 +362,7 @@ export class RadiographViewer {
      */
     setBrightness(value) {
         this.brightness = Math.max(-100, Math.min(100, value));
-        this.processImage();
+        this.processImageDebounced();
     }
 
     /**
@@ -255,7 +371,7 @@ export class RadiographViewer {
      */
     setContrast(value) {
         this.contrast = Math.max(-100, Math.min(100, value));
-        this.processImage();
+        this.processImageDebounced();
     }
 
     /**
@@ -264,7 +380,7 @@ export class RadiographViewer {
      */
     setEdgeEnhancement(value) {
         this.edgeEnhancement = Math.max(0, Math.min(10, value));
-        this.processImage();
+        this.processImageDebounced();
     }
 
     /**
@@ -273,7 +389,12 @@ export class RadiographViewer {
     toggleInvert() {
         if (!this.originalImage) return;
         this.isInverted = !this.isInverted;
+        
+        const invertBtn = document.getElementById('invertBtn');
+        invertBtn.setAttribute('aria-pressed', this.isInverted ? 'true' : 'false');
+        
         this.processImage();
+        this.announceToScreenReader(this.isInverted ? 'Image inverted' : 'Image normal');
     }
     
     /**
@@ -305,7 +426,7 @@ export class RadiographViewer {
 
         if (maxValue === 0) return;
 
-        // Draw histogram bars (transparent white)
+        // Draw histogram bars
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let i = 0; i < 256; i++) {
             const barHeight = (histData.luminance[i] / maxValue) * height * 0.8;
@@ -317,7 +438,6 @@ export class RadiographViewer {
         ctx.strokeStyle = '#444444';
         ctx.lineWidth = 0.5;
         
-        // Vertical lines (every 64 values)
         for (let i = 0; i <= 4; i++) {
             const x = (i / 4) * width;
             ctx.beginPath();
@@ -326,7 +446,6 @@ export class RadiographViewer {
             ctx.stroke();
         }
 
-        // Horizontal lines
         for (let i = 0; i <= 4; i++) {
             const y = (i / 4) * height;
             ctx.beginPath();
@@ -335,49 +454,44 @@ export class RadiographViewer {
             ctx.stroke();
         }
 
-        // Draw transfer curve showing brightness/contrast mapping
-        ctx.strokeStyle = '#00ff00'; // Green curve
+        // Draw transfer curve
+        ctx.strokeStyle = '#00ff00';
         ctx.lineWidth = 2;
         ctx.beginPath();
 
         const brightness = this.brightness;
         const contrast = this.contrast;
+        const isInverted = this.isInverted;
 
-        // Draw the transfer function - must match the image processing algorithm
         for (let input = 0; input <= 255; input++) {
             let output = input;
 
-            // This must match the applyBrightnessContrast method exactly
             if (contrast > 50) {
-                // Extreme contrast mode
                 const threshold = 128 - ((contrast - 50) * 2.36);
                 const smoothing = Math.max(1, 100 - contrast);
-                
-                // For the curve, we need to simulate what happens to a grayscale pixel
                 const adjustedValue = input + brightness;
                 
                 if (contrast >= 95) {
-                    // Hard threshold
                     output = adjustedValue > threshold ? 255 : 0;
                 } else {
-                    // Sigmoid curve
                     const k = smoothing / 10;
                     const sigmoidInput = (adjustedValue - threshold) / k;
                     output = 255 / (1 + Math.exp(-sigmoidInput));
                 }
             } else {
-                // Normal contrast mode
                 const contrastFactor = contrast <= 0 
                     ? (contrast + 100) / 100
                     : 1 + (contrast / 50) * 3;
-                
                 output = ((input - 128) * contrastFactor) + 128 + brightness;
             }
 
-            // Clamp output to valid range
             output = Math.max(0, Math.min(255, output));
 
-            // Convert to canvas coordinates
+            // Apply inversion to the curve if inverted
+            if (isInverted) {
+                output = 255 - output;
+            }
+
             const x = (input / 255) * width;
             const y = height - (output / 255) * height;
 
@@ -389,7 +503,7 @@ export class RadiographViewer {
         }
         ctx.stroke();
 
-        // Draw diagonal reference line (input = output)
+        // Draw diagonal reference line
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.lineWidth = 1;
         ctx.setLineDash([5, 5]);
@@ -406,7 +520,6 @@ export class RadiographViewer {
         ctx.fillText('255', width - 20, height - 2);
         ctx.fillText('Input →', width / 2 - 20, height - 2);
         
-        // Vertical axis label (rotated)
         ctx.save();
         ctx.translate(10, height / 2);
         ctx.rotate(-Math.PI / 2);
@@ -458,10 +571,12 @@ export class RadiographViewer {
 
     /**
      * Update canvas CSS transform
+     * FIXED: Using translate3d for GPU acceleration
      * @private
      */
     updateCanvasTransform() {
-        this.canvas.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+        // Use translate3d instead of translate for better GPU acceleration
+        this.canvas.style.transform = `translate3d(${this.panX}px, ${this.panY}px, 0) scale(${this.zoom})`;
     }
 
     /**
@@ -472,6 +587,12 @@ export class RadiographViewer {
         const percent = Math.round(this.zoom * 100);
         document.getElementById('zoomDisplay').textContent = `${percent}%`;
         document.getElementById('infoZoom').textContent = `${percent}%`;
+        
+        // Update ARIA values
+        const zoomDisplay = document.getElementById('zoomDisplay');
+        if (zoomDisplay) {
+            zoomDisplay.setAttribute('aria-valuenow', percent);
+        }
     }
 
     /**
@@ -534,5 +655,26 @@ export class RadiographViewer {
         this.zoom = Math.max(CONFIG.MIN_ZOOM, Math.min(CONFIG.MAX_ZOOM, zoomLevel));
         this.updateZoomDisplay();
         this.updateCanvasTransform();
+    }
+
+    /**
+     * Export current image to file
+     * @param {string} format - Image format (png, jpeg)
+     * @param {number} quality - Quality for JPEG (0-1)
+     */
+    exportImage(format = 'png', quality = 0.95) {
+        if (!this.hasImage()) return;
+
+        try {
+            const dataUrl = this.canvas.toDataURL(`image/${format}`, quality);
+            const link = document.createElement('a');
+            link.download = `radiograph-adjusted.${format}`;
+            link.href = dataUrl;
+            link.click();
+            this.announceToScreenReader('Image exported successfully');
+        } catch (error) {
+            console.error('Export failed:', error);
+            this.announceToScreenReader('Image export failed');
+        }
     }
 }

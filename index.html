@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Radiograph Image Viewer</title>
 
     <style>
         /**
          * Radiograph Image Viewer - Stylesheet
          * Professional dark theme with pure black background for medical imaging
-         * All text in light colors for optimal contrast
+         * All CSS inlined for LMS compatibility
          */
 
         /* ===========================
@@ -27,6 +28,8 @@
             color: #ffffff;
             overflow: hidden;
             touch-action: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* ===========================
@@ -41,6 +44,7 @@
             gap: 20px;
             flex-wrap: wrap;
             z-index: 100;
+            position: relative;
         }
 
         .controls {
@@ -74,7 +78,7 @@
         }
 
         /* ===========================
-           Form Elements
+           Form Elements - UiO Blue
            =========================== */
         input[type="range"] {
             width: 100px;
@@ -89,7 +93,7 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: #007acc;
+            background: #007396;
             cursor: pointer;
             border-radius: 50%;
             transition: background 0.2s;
@@ -97,13 +101,13 @@
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            background: #0099ff;
+            background: #0089B8;
         }
 
         input[type="range"]::-moz-range-thumb {
             width: 16px;
             height: 16px;
-            background: #007acc;
+            background: #007396;
             cursor: pointer;
             border-radius: 50%;
             border: 1px solid #ffffff;
@@ -111,16 +115,15 @@
         }
 
         input[type="range"]::-moz-range-thumb:hover {
-            background: #0099ff;
+            background: #0089B8;
         }
 
         /* ===========================
-           Buttons
+           Buttons - UiO Color Palette (Blue Theme)
            =========================== */
         .file-button, 
         .reset-button, 
         .tool-button {
-            background: #007acc;
             color: #ffffff;
             padding: 8px 16px;
             border: none;
@@ -129,40 +132,62 @@
             font-size: 14px;
             transition: all 0.2s;
             font-weight: 500;
-            border: 1px solid #0099ff;
+            min-height: 44px;
+            min-width: 44px;
         }
 
-        .file-button:hover {
-            background: #0099ff;
+        /* Primary actions - UiO Blue */
+        .file-button {
+            background: #007396;
+            border: 1px solid #0089B8;
+        }
+
+        .file-button:hover:not(:disabled) {
+            background: #0089B8;
             transform: translateY(-1px);
         }
 
+        .file-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Secondary actions - Professional dark gray */
         .tool-button {
             background: #5a5a5a;
             border: 1px solid #777777;
         }
 
-        .tool-button:hover {
+        .tool-button:hover:not(:disabled) {
             background: #6a6a6a;
         }
 
+        /* Active state - UiO Blue Light */
         .tool-button.active {
-            background: #28a745;
-            border: 1px solid #33d053;
+            background: #0089B8;
+            border: 1px solid #00A9E0;
         }
 
+        /* Reset/destructive action - UiO Red for warning */
         .reset-button {
-            background: #d9534f;
-            border: 1px solid #ff6b66;
+            background: #C8102E;
+            border: 1px solid #E31937;
         }
 
-        .reset-button:hover {
-            background: #e9635f;
+        .reset-button:hover:not(:disabled) {
+            background: #E31937;
         }
 
         /* ===========================
            Language Selector
            =========================== */
+        .language-selector {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .language-selector select {
             background: #1a1a1a;
             color: #ffffff;
@@ -199,7 +224,7 @@
         }
 
         /* ===========================
-           Canvas Styles
+           Canvas Styles - FIXED for Edge flickering
            =========================== */
         canvas {
             cursor: grab;
@@ -212,6 +237,13 @@
             image-rendering: -webkit-crisp-edges;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            
+            /* GPU acceleration fixes for Edge flickering */
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
 
         canvas:active {
@@ -249,7 +281,7 @@
         }
 
         /* ===========================
-           Histogram Panel (Updated with drag handle)
+           Histogram Panel
            =========================== */
         .histogram-panel {
             position: absolute;
@@ -311,6 +343,9 @@
             margin-right: 3px;
         }
 
+        /* ===========================
+           Instructions
+           =========================== */
         .instructions {
             position: absolute;
             top: 50%;
@@ -346,14 +381,14 @@
         }
 
         /* ===========================
-           Mouse Hint
+           Mouse Hint - UiO Blue
            =========================== */
         .mouse-hint {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 122, 204, 0.95);
+            background: rgba(0, 115, 150, 0.95);
             color: #ffffff;
             padding: 8px 12px;
             border-radius: 4px;
@@ -363,7 +398,7 @@
             transition: opacity 0.2s;
             z-index: 100;
             backdrop-filter: blur(5px);
-            border: 1px solid #0099ff;
+            border: 1px solid #0089B8;
         }
 
         .mouse-hint.visible {
@@ -371,7 +406,7 @@
         }
 
         /* ===========================
-           Zoom Controls
+           Zoom Controls - UiO Blue
            =========================== */
         .zoom-controls {
             position: absolute;
@@ -383,11 +418,11 @@
         }
 
         .zoom-button {
-            background: rgba(0, 122, 204, 0.8);
+            background: rgba(0, 115, 150, 0.85);
             color: #ffffff;
-            border: 1px solid #0099ff;
-            width: 40px;
-            height: 40px;
+            border: 1px solid #007396;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             cursor: pointer;
             font-size: 20px;
@@ -399,12 +434,12 @@
         }
 
         .zoom-button:hover {
-            background: rgba(0, 153, 255, 0.9);
+            background: rgba(0, 137, 184, 0.95);
             transform: scale(1.1);
         }
 
         /* ===========================
-           Drop Zone
+           Drop Zone - UiO Blue
            =========================== */
         .drop-zone {
             position: absolute;
@@ -412,7 +447,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 122, 204, 0.9);
+            background: rgba(0, 115, 150, 0.9);
             display: none;
             align-items: center;
             justify-content: center;
@@ -483,7 +518,7 @@
 
         .url-input input:focus {
             outline: none;
-            border-color: #007acc;
+            border-color: #007396;
             background: #222222;
         }
 
@@ -494,7 +529,7 @@
         .url-input button {
             width: 100%;
             padding: 8px;
-            background: #007acc;
+            background: #007396;
             color: #ffffff;
             border: none;
             border-radius: 3px;
@@ -504,8 +539,13 @@
             transition: background 0.2s;
         }
 
-        .url-input button:hover {
-            background: #0099ff;
+        .url-input button:hover:not(:disabled) {
+            background: #0089B8;
+        }
+
+        .url-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .url-input .close-btn {
@@ -524,7 +564,7 @@
         }
 
         /* ===========================
-           Scan Section
+           Scan Section - UiO Blue
            =========================== */
         .scan-section {
             border-top: 1px solid #444444;
@@ -533,11 +573,11 @@
         }
 
         .scan-section button {
-            background: #28a745;
+            background: #0089B8;
         }
 
-        .scan-section button:hover {
-            background: #33d053;
+        .scan-section button:hover:not(:disabled) {
+            background: #00A9E0;
         }
 
         /* ===========================
@@ -565,7 +605,7 @@
         }
 
         .thumbnail-item:hover {
-            border-color: #007acc;
+            border-color: #007396;
             transform: scale(1.05);
         }
 
@@ -588,13 +628,37 @@
         }
 
         /* ===========================
-           Loading State
+           Loading State - UiO Blue
            =========================== */
         .loading {
             text-align: center;
-            color: #00aaff;
+            color: #007396;
             padding: 20px;
             font-size: 14px;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #333;
+            border-top: 4px solid #007396;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 200;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
         /* ===========================
@@ -633,13 +697,28 @@
         }
 
         /* ===========================
-           Focus States
+           Focus States - UiO Blue
            =========================== */
         button:focus,
         input:focus,
         select:focus {
-            outline: 2px solid #007acc;
+            outline: 2px solid #007396;
             outline-offset: 2px;
+        }
+
+        /* ===========================
+           Accessibility - Screen Reader Only
+           =========================== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
         }
 
         /* ===========================
@@ -648,13 +727,11 @@
         @media (max-width: 768px) {
             .header {
                 padding: 5px 10px;
-                background: #0a0a0a;
             }
             
             .control-group label {
                 min-width: 35px;
                 font-size: 11px;
-                color: #e0e0e0;
             }
             
             input[type="range"] {
@@ -670,12 +747,43 @@
                 width: calc(100% - 20px);
                 left: 10px;
                 right: 10px;
-                background: rgba(10, 10, 10, 0.98);
             }
             
             .histogram-panel {
                 width: 250px;
                 height: 170px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px;
+            }
+
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .control-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .zoom-controls {
+                bottom: 10px;
+                top: auto;
+                right: 50%;
+                transform: translateX(50%);
+                flex-direction: row;
+            }
+
+            .language-selector {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -721,10 +829,9 @@
         }
 
         /* ===========================
-           Dark Mode Override (Ensure always dark)
+           Dark Mode Override
            =========================== */
         @media (prefers-color-scheme: light) {
-            /* Force dark theme even if user prefers light */
             body {
                 background: #000000 !important;
                 color: #ffffff !important;
@@ -732,62 +839,93 @@
             
             .header {
                 background: #0a0a0a !important;
-                color: #ffffff !important;
-            }
-            
-            .control-group {
-                background: #1a1a1a !important;
-            }
-            
-            input, select, button {
-                color: #ffffff !important;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Accessibility: Live region for announcements -->
+    <div id="liveRegion" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner"></div>
+
     <!-- Header with controls -->
     <header class="header">
-        <button class="file-button" id="openFileBtn">
+        <button class="file-button" id="openFileBtn" aria-label="Open local image file">
             Open Image
         </button>
-        <button class="file-button" id="loadServerBtn">
+        <button class="file-button" id="loadServerBtn" aria-label="Load image from server">
             Load from Server
         </button>
-        <input type="file" id="fileInput" accept="image/*" hidden>
+        <input type="file" id="fileInput" accept="image/*" hidden aria-hidden="true">
         
         <div class="controls">
             <!-- Zoom Display -->
             <div class="control-group">
-                <label>Zoom:</label>
-                <span id="zoomDisplay">100%</span>
+                <label for="zoomDisplay">Zoom:</label>
+                <span id="zoomDisplay" role="status" aria-live="polite">100%</span>
             </div>
             
             <!-- Brightness Control -->
             <div class="control-group">
-                <label>Brightness:</label>
-                <input type="range" id="brightness" min="-100" max="100" value="0">
-                <span id="brightnessValue">0</span>
+                <label for="brightness">Brightness:</label>
+                <input 
+                    type="range" 
+                    id="brightness" 
+                    min="-100" 
+                    max="100" 
+                    value="0"
+                    aria-label="Adjust brightness"
+                    aria-valuemin="-100"
+                    aria-valuemax="100"
+                    aria-valuenow="0">
+                <span id="brightnessValue" aria-live="polite">0</span>
             </div>
             
             <!-- Contrast Control -->
             <div class="control-group">
-                <label>Contrast:</label>
-                <input type="range" id="contrast" min="-100" max="100" value="0">
-                <span id="contrastValue">0</span>
+                <label for="contrast">Contrast:</label>
+                <input 
+                    type="range" 
+                    id="contrast" 
+                    min="-100" 
+                    max="100" 
+                    value="0"
+                    aria-label="Adjust contrast"
+                    aria-valuemin="-100"
+                    aria-valuemax="100"
+                    aria-valuenow="0">
+                <span id="contrastValue" aria-live="polite">0</span>
             </div>
             
             <!-- Edge Enhancement Control -->
             <div class="control-group">
-                <label>Edge:</label>
-                <input type="range" id="edgeEnhancement" min="0" max="10" value="0" step="0.1">
-                <span id="edgeValue">0</span>
+                <label for="edgeEnhancement">Edge:</label>
+                <input 
+                    type="range" 
+                    id="edgeEnhancement" 
+                    min="0" 
+                    max="10" 
+                    value="0" 
+                    step="0.1"
+                    aria-label="Adjust edge enhancement"
+                    aria-valuemin="0"
+                    aria-valuemax="10"
+                    aria-valuenow="0">
+                <span id="edgeValue" aria-live="polite">0</span>
             </div>
 
             <!-- Tool Buttons -->
-            <button class="tool-button" id="invertBtn">Invert</button>
-            <button class="tool-button" id="histogramBtn">Histogram</button>
-            <button class="reset-button" id="resetBtn">Reset</button>
+            <button class="tool-button" id="invertBtn" aria-label="Invert image colors" aria-pressed="false">
+                Invert
+            </button>
+            <button class="tool-button" id="histogramBtn" aria-label="Show histogram" aria-pressed="false">
+                Histogram
+            </button>
+            <button class="reset-button" id="resetBtn" aria-label="Reset all adjustments and zoom">
+                Reset
+            </button>
         </div>
     </header>
     
@@ -795,7 +933,7 @@
     <main class="viewer-container">
         <!-- Canvas Container -->
         <div class="canvas-container">
-            <canvas id="imageCanvas"></canvas>
+            <canvas id="imageCanvas" aria-label="Radiograph image viewer"></canvas>
         </div>
         
         <!-- Instructions Panel -->
@@ -810,10 +948,10 @@
             </small>
         </div>
         
-        <!-- Histogram Panel (Now draggable) -->
-        <div class="histogram-panel" id="histogramPanel">
+        <!-- Histogram Panel -->
+        <div class="histogram-panel" id="histogramPanel" role="region" aria-label="Image histogram">
             <h3>Luminance Histogram & Transfer Curve</h3>
-            <canvas id="histogramCanvas" class="histogram-canvas" width="280" height="160"></canvas>
+            <canvas id="histogramCanvas" class="histogram-canvas" width="280" height="160" aria-label="Histogram visualization"></canvas>
             <div class="histogram-legend">
                 <span class="curve-indicator"></span>Transfer Curve
             </div>
@@ -821,20 +959,20 @@
         
         <!-- Zoom Control Buttons -->
         <div class="zoom-controls">
-            <button class="zoom-button" id="zoomInBtn" title="Zoom In">+</button>
-            <button class="zoom-button" id="zoomOutBtn" title="Zoom Out">−</button>
-            <button class="zoom-button" id="resetZoomBtn" title="Reset Zoom">⌂</button>
+            <button class="zoom-button" id="zoomInBtn" title="Zoom In" aria-label="Zoom in">+</button>
+            <button class="zoom-button" id="zoomOutBtn" title="Zoom Out" aria-label="Zoom out">−</button>
+            <button class="zoom-button" id="resetZoomBtn" title="Reset Zoom" aria-label="Reset zoom">⌂</button>
         </div>
         
         <!-- Info Panel -->
-        <div class="info-panel" id="infoPanel" style="display: none;">
+        <div class="info-panel" id="infoPanel" style="display: none;" role="status">
             <div>Image: <span id="imageName"></span></div>
             <div>Size: <span id="imageSize"></span></div>
             <div>Zoom: <span id="infoZoom">100%</span></div>
         </div>
         
         <!-- Mouse Hint -->
-        <div class="mouse-hint" id="mouseHint"></div>
+        <div class="mouse-hint" id="mouseHint" role="tooltip"></div>
         
         <!-- Drop Zone -->
         <div class="drop-zone" id="dropZone">
@@ -843,9 +981,13 @@
     </main>
     
     <!-- Server Load Dialog -->
-    <div class="url-input" id="urlInput">
-        <h3>Load from Server</h3>
-        <input type="text" id="imageUrl" placeholder="Enter filename (e.g., chest.jpg) or full URL">
+    <div class="url-input" id="urlInput" role="dialog" aria-labelledby="urlDialogTitle">
+        <h3 id="urlDialogTitle">Load from Server</h3>
+        <input 
+            type="text" 
+            id="imageUrl" 
+            placeholder="Enter filename (e.g., chest.jpg) or full URL"
+            aria-label="Image URL or filename">
         <button id="loadUrlBtn">Load by URL</button>
         
         <div class="scan-section">
@@ -863,16 +1005,15 @@
         </div>
     </div>
 
-    <!-- Add histogram dragging script -->
+    <!-- Histogram dragging script -->
     <script>
-        // Histogram panel dragging functionality
         document.addEventListener('DOMContentLoaded', function() {
             const histogramPanel = document.getElementById('histogramPanel');
             let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
             let xOffset = 0;
             let yOffset = 0;
 
@@ -885,7 +1026,7 @@
                     initialY = e.clientY - yOffset;
                 }
 
-                if (e.target === histogramPanel) {
+                if (e.target === histogramPanel || e.target === histogramPanel.querySelector('h3')) {
                     isDragging = true;
                     histogramPanel.classList.add('dragging');
                 }
@@ -894,7 +1035,6 @@
             function dragEnd(e) {
                 initialX = currentX;
                 initialY = currentY;
-
                 isDragging = false;
                 histogramPanel.classList.remove('dragging');
             }
@@ -914,28 +1054,22 @@
                     xOffset = currentX;
                     yOffset = currentY;
 
-                    // Constrain to viewport
                     const rect = histogramPanel.getBoundingClientRect();
                     const maxX = window.innerWidth - rect.width;
                     const maxY = window.innerHeight - rect.height;
 
-                    if (currentX < 0) currentX = 0;
-                    if (currentY < 0) currentY = 0;
-                    if (currentX > maxX) currentX = maxX;
-                    if (currentY > maxY) currentY = maxY;
+                    currentX = Math.max(0, Math.min(currentX, maxX));
+                    currentY = Math.max(0, Math.min(currentY, maxY));
 
                     histogramPanel.style.transform = `translate(${currentX}px, ${currentY}px)`;
                 }
             }
 
-            // Mouse events
             histogramPanel.addEventListener('mousedown', dragStart);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', dragEnd);
-
-            // Touch events
-            histogramPanel.addEventListener('touchstart', dragStart);
-            document.addEventListener('touchmove', drag);
+            histogramPanel.addEventListener('touchstart', dragStart, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
             document.addEventListener('touchend', dragEnd);
         });
     </script>

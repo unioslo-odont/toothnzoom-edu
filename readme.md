@@ -1,13 +1,6 @@
-# Tooth ’n’ Zoom - Dental Educational Darkrom
+# Tooth 'n' Zoom - Dental Educational Darkroom
 
 A pedagogical tool designed specifically for dental education in oral radiology. This viewer allows instructors to provide radiographic examples to students and enables basic image manipulation for educational purposes.
-
-<p>
-  <img src="docs/tooth-n-zoom-screenshot.png" alt="Panoramic radiograph example" width="600"><br>
-  <em>Screenshot displaying panoramic image from
-    <a href="https://en.wikipedia.org/wiki/Panoramic_radiograph">Wikipedia</a>
-  </em>
-</p>
 
 **Educational Tool Notice**: This viewer is strictly an educational tool for teaching oral radiology concepts. It is **NOT** intended for clinical diagnosis or patient care. Always use certified medical imaging software for clinical applications.
 
@@ -41,51 +34,19 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 - **Zoom & Pan**: Detailed examination (10% to 1000% zoom)
 - **Multi-language Support**: English and Norwegian
 
-### Image Processing Capabilities
+### Image Processing
 
-#### Contrast Enhancement
-The contrast control now features two distinct modes:
-- **Normal Range (-100 to 50)**: Traditional contrast adjustment
-  - -100: Completely flat (all pixels become middle gray)
-  - 0: No adjustment
-  - 50: Enhanced contrast with preserved tonal range
-- **Extreme Mode (50 to 100)**: Threshold-based processing
-  - 50-95: Progressive sigmoid curve creating dramatic contrast
-  - 95-100: Near-binary black/white threshold effect
-
-#### Histogram & Transfer Curve
-- **Luminance Histogram**: Shows the distribution of brightness values (0-255)
-- **Transfer Curve** (green overlay): Real-time visualization of how input values map to output values
-  - Diagonal line = no adjustment
-  - Curve above diagonal = brightening
-  - Curve below diagonal = darkening
-  - Steep curve = high contrast
-  - Flat curve = low contrast
+The viewer features sophisticated image processing capabilities:
+- **Contrast Enhancement**: Two modes - standard (-100 to 50) for traditional adjustment, and extreme (50 to 100) for threshold-based dramatic effects
+- **Histogram & Transfer Curve**: Real-time visualization of brightness distribution and transformation mapping, including inversion effects
+- **Edge Enhancement**: Laplacian filter for detail enhancement
+- **Image Inversion**: Full negative effect with histogram reflection
 
 ### Controls
 
-**Mouse**:
-- Left-drag: Pan
-- Wheel: Zoom
-- Middle-drag: Adjust brightness/contrast
-- Ctrl + Left-drag: Zoom
-
-**Touch** (tablets):
-- 1-finger: Pan
-- Pinch: Zoom
-- 2-finger drag: Adjust brightness/contrast
-
-**Keyboard**:
-- `+`/`=`: Zoom in
-- `-`: Zoom out
-- `0`: Reset zoom
-- `I`: Toggle invert
-- `Ctrl+R`: Reset all adjustments
-- Arrow keys: Pan
-
-**Histogram Panel**:
-- Click and drag to reposition anywhere on screen
-- Toggle visibility with Histogram button
+**Mouse**: Left-drag to pan, wheel to zoom, middle-drag to adjust brightness/contrast  
+**Touch**: 1-finger pan, pinch zoom, 2-finger drag to adjust  
+**Keyboard**: +/- zoom, I for invert, Ctrl+R reset, arrow keys pan
 
 ## Quick Start
 
@@ -96,25 +57,50 @@ The contrast control now features two distinct modes:
 
 ### For Classroom Server
 1. Place teaching radiographs in `images/` folder
-2. Update `images/file_list.json` with filenames:
-```json
-[
-  "periapical-1.jpg",
-  "bitewing-1.jpg",
-  "panoramic-1.jpg"
-]
-```
-3. Run a local server:
-```bash
-python -m http.server 8000
-```
+2. Update `images/file_list.json` with filenames
+3. Run a local server: `python -m http.server 8000`
 4. Access at `http://localhost:8000`
+
+## Technical Features
+
+### Web Platform Compatibility
+All CSS is inlined for compatibility with various web publishing platforms (tested with UiO Vortex), ensuring consistent styling regardless of server MIME type configuration.
+
+### Performance Optimizations
+- GPU-accelerated rendering for smooth performance across browsers
+- Debounced image processing for responsive controls
+- Optimized for Microsoft Edge browser compatibility
+- Request animation frame for flicker-free updates
+
+### UiO Brand Integration
+Interface uses University of Oslo's official color palette (UiO Blue #007396) for professional appearance aligned with institutional branding, with red reserved for the reset button as a clear warning for destructive actions.
+
+## Design Rationale
+
+The **pure black background** (#000000) serves important pedagogical purposes:
+- Mimics professional clinical viewing conditions
+- Reduces eye fatigue during extended study
+- Provides optimal contrast for radiographic details
+- Minimizes distractions
+- Familiarizes students with professional standards
+
+## System Requirements
+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- JavaScript enabled
+- Screen resolution: 1024x768 or higher
+- 4GB RAM recommended
+
+## Educational Use Cases
+
+**Classroom**: Group analysis, exposure demonstration, anatomy review, pathology identification, histogram interpretation  
+**Self-Study**: Exam preparation, practice sessions, homework assignments, research projects
 
 ## Project Structure
 
 ```
 dental-radiograph-viewer/
-├── index.html              # Main application
+├── index.html              # Main application (CSS inlined)
 ├── js/
 │   ├── app.js             # Application initialization
 │   ├── viewer.js          # Core viewing functionality
@@ -128,115 +114,12 @@ dental-radiograph-viewer/
 └── README.md             # Documentation
 ```
 
-## Design Rationale
-
-The **pure black background** (#000000) serves important pedagogical purposes:
-- Mimics professional clinical viewing conditions
-- Reduces eye fatigue during extended study
-- Provides optimal contrast for radiographic details
-- Minimizes distractions
-- Familiarizes students with professional standards
-
-## Understanding the Histogram
-
-The histogram display provides two key pieces of information:
-
-1. **Luminance Distribution** (white bars):
-   - X-axis: Pixel brightness values (0 = black, 255 = white)
-   - Y-axis: Frequency of pixels at each brightness level
-   - Helps identify exposure issues:
-     - Left-heavy: Underexposed
-     - Right-heavy: Overexposed
-     - Well-distributed: Good tonal range
-
-2. **Transfer Curve** (green line):
-   - Shows the mathematical transformation applied by brightness/contrast adjustments
-   - Input values (horizontal) mapped to output values (vertical)
-   - Useful for understanding how adjustments affect the image
-   - At extreme contrast settings, approaches a step function for threshold effects
-
-## System Requirements
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- JavaScript enabled
-- Screen resolution: 1024x768 or higher
-- 4GB RAM recommended
-
-## Educational Use Cases
-
-### Classroom Activities
-- Group analysis of radiographs
-- Demonstration of exposure effects
-- Interactive anatomy review
-- Pathology identification practice
-- Student case presentations
-- Teaching histogram interpretation
-- Demonstrating the effects of image processing
-
-### Self-Study
-- Exam preparation
-- Practice sessions
-- Homework assignments
-- Research projects
-- Understanding image processing concepts
-
-## Customization
-
-Adjust sensitivity in `js/controls.js`:
-
-```javascript
-export const CONFIG = {
-    ZOOM_WHEEL_FACTOR: 1.1,      // Zoom speed
-    BRIGHTNESS_SENSITIVITY: 0.5,  // Brightness adjustment rate
-    CONTRAST_SENSITIVITY: 0.5,    // Contrast adjustment rate
-    MAX_ZOOM: 10,                // Maximum zoom (1000%)
-    MIN_ZOOM: 0.1                // Minimum zoom (10%)
-};
-```
-
-## Troubleshooting
-
-**Images not loading from server**:
-- Check that you're running a web server (not `file://`)
-- Verify `images/file_list.json` exists and is correct
-- Check browser console for errors
-
-**Server browsing on UiO network**:
-- Authentication may block JSON file loading
-- Use local file upload instead ("Open Image" button)
-
-**Transfer curve not visible**:
-- Ensure browser cache is cleared (Ctrl+F5 or Cmd+Shift+R)
-- Verify both `viewer.js` and `image-processor.js` are updated
-- Check browser console for JavaScript errors
-
-## Technical Notes
-
-### Image Processing Algorithm
-The viewer uses different algorithms based on the contrast setting:
-- **Standard mode**: Linear contrast adjustment with preserved color relationships
-- **Extreme mode**: Luminance-based sigmoid transformation for dramatic effects
-- All processing is done in real-time on the canvas
-
-### Performance Considerations
-- Large images (>4MP) may show slight lag during real-time adjustments
-- Edge enhancement is computationally intensive and may affect performance
-- Histogram updates automatically when adjustments are made
-
 ## Important Disclaimers
 
 1. **Educational Use Only**: Designed exclusively for teaching oral radiology
 2. **Not for Diagnosis**: Never use for clinical diagnosis or treatment
 3. **Student Practice Tool**: For supervised educational activities only
 4. **No Patient Data**: Use only teaching materials or properly anonymized images
-
-## Version History
-
-### Latest Update
-- Enhanced contrast range with extreme black/white threshold mode
-- Added real-time transfer curve visualization in histogram
-- Made histogram panel draggable for flexible positioning
-- Improved contrast algorithm for better radiograph enhancement
 
 ## License
 
