@@ -54,6 +54,82 @@
             flex-wrap: wrap;
         }
 
+        .viewer-container {
+            position: relative;
+            width: 100vw;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+            background: #000000;
+        }
+
+        /* ===========================
+           Buttons
+           =========================== */
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-button, 
+        .reset-button, 
+        .tool-button {
+            color: #ffffff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-weight: 500;
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Primary actions - UiO Blue */
+        .file-button {
+            background: #007396;
+            border: 1px solid #0089B8;
+        }
+
+        .file-button:hover:not(:disabled) {
+            background: #0089B8;
+            transform: translateY(-1px);
+        }
+
+        .file-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Secondary actions - Professional dark gray */
+        .tool-button {
+            background: #5a5a5a;
+            border: 1px solid #777777;
+        }
+
+        .tool-button:hover:not(:disabled) {
+            background: #6a6a6a;
+        }
+
+        /* Active state - UiO Blue Light */
+        .tool-button.active {
+            background: #0089B8;
+            border: 1px solid #00A9E0;
+        }
+
+        /* Reset/destructive action - UiO Red for warning */
+        .reset-button {
+            background: #C8102E;
+            border: 1px solid #E31937;
+        }
+
+        .reset-button:hover:not(:disabled) {
+            background: #E31937;
+        }
+
+        /* ===========================
+           Controls
+           =========================== */
         .control-group {
             display: flex;
             align-items: center;
@@ -119,66 +195,6 @@
         }
 
         /* ===========================
-           Buttons - UiO Color Palette (Blue Theme)
-           =========================== */
-        .file-button, 
-        .reset-button, 
-        .tool-button {
-            color: #ffffff;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            font-weight: 500;
-            min-height: 44px;
-            min-width: 44px;
-        }
-
-        /* Primary actions - UiO Blue */
-        .file-button {
-            background: #007396;
-            border: 1px solid #0089B8;
-        }
-
-        .file-button:hover:not(:disabled) {
-            background: #0089B8;
-            transform: translateY(-1px);
-        }
-
-        .file-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Secondary actions - Professional dark gray */
-        .tool-button {
-            background: #5a5a5a;
-            border: 1px solid #777777;
-        }
-
-        .tool-button:hover:not(:disabled) {
-            background: #6a6a6a;
-        }
-
-        /* Active state - UiO Blue Light */
-        .tool-button.active {
-            background: #0089B8;
-            border: 1px solid #00A9E0;
-        }
-
-        /* Reset/destructive action - UiO Red for warning */
-        .reset-button {
-            background: #C8102E;
-            border: 1px solid #E31937;
-        }
-
-        .reset-button:hover:not(:disabled) {
-            background: #E31937;
-        }
-
-        /* ===========================
            Language Selector
            =========================== */
         .language-selector {
@@ -203,17 +219,6 @@
             color: #ffffff;
         }
 
-        /* ===========================
-           Viewer Container
-           =========================== */
-        .viewer-container {
-            position: relative;
-            width: 100vw;
-            height: calc(100vh - 80px);
-            overflow: hidden;
-            background: #000000;
-        }
-
         .canvas-container {
             position: absolute;
             top: 0;
@@ -223,9 +228,6 @@
             background: #000000;
         }
 
-        /* ===========================
-           Canvas Styles - FIXED for Edge flickering
-           =========================== */
         canvas {
             cursor: grab;
             position: absolute;
@@ -724,6 +726,41 @@
         /* ===========================
            Responsive Design
            =========================== */
+        
+        /* Tablet and iPad (portrait and landscape) */
+        @media (max-width: 1024px) {
+            .header {
+                padding: 8px 12px;
+                gap: 12px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .file-button, .reset-button, .tool-button {
+                padding: 10px 14px;
+                font-size: 14px;
+                min-height: 48px;
+                min-width: 48px;
+            }
+            
+            .control-group {
+                padding: 8px 12px;
+            }
+            
+            input[type="range"] {
+                width: 90px;
+            }
+            
+            input[type="range"]::-webkit-slider-thumb,
+            input[type="range"]::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+            }
+        }
+        
+        /* Mobile phones */
         @media (max-width: 768px) {
             .header {
                 padding: 5px 10px;
@@ -786,6 +823,52 @@
                 justify-content: center;
             }
         }
+        
+        /* iPad specific - ensure touch targets are adequate */
+        @media (min-width: 768px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+            .file-button, .reset-button, .tool-button,
+            .zoom-button {
+                min-height: 52px;
+                min-width: 52px;
+            }
+            
+            .control-group {
+                min-height: 48px;
+            }
+        }
+        
+        /* iPad landscape - more horizontal space */
+        @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+            .header {
+                padding: 6px 16px;
+            }
+            
+            .controls {
+                gap: 12px;
+            }
+            
+            input[type="range"] {
+                width: 100px;
+            }
+        }
+        
+        /* Support for devices in iframe/constrained environments */
+        @media (max-height: 600px) {
+            .header {
+                padding: 4px 10px;
+                gap: 8px;
+            }
+            
+            .file-button, .reset-button, .tool-button {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-height: 40px;
+            }
+            
+            .control-group {
+                padding: 4px 8px;
+            }
+        }
 
         /* ===========================
            Print Styles
@@ -810,37 +893,6 @@
                 background: #ffffff;
             }
         }
-
-        /* ===========================
-           High Contrast Mode Support
-           =========================== */
-        @media (prefers-contrast: high) {
-            .control-group {
-                border: 2px solid #ffffff;
-            }
-            
-            button {
-                border: 2px solid #ffffff;
-            }
-            
-            input[type="range"]::-webkit-slider-thumb {
-                border: 2px solid #ffffff;
-            }
-        }
-
-        /* ===========================
-           Dark Mode Override
-           =========================== */
-        @media (prefers-color-scheme: light) {
-            body {
-                background: #000000 !important;
-                color: #ffffff !important;
-            }
-            
-            .header {
-                background: #0a0a0a !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -852,12 +904,14 @@
 
     <!-- Header with controls -->
     <header class="header">
-        <button class="file-button" id="openFileBtn" aria-label="Open local image file">
-            Open Image
-        </button>
-        <button class="file-button" id="loadServerBtn" aria-label="Load image from server">
-            Load from Server
-        </button>
+        <div class="button-row">
+            <button class="file-button" id="openFileBtn" aria-label="Open local image file">
+                Open Image
+            </button>
+            <button class="file-button" id="loadServerBtn" aria-label="Load image from server">
+                Load from Server
+            </button>
+        </div>
         <input type="file" id="fileInput" accept="image/*" hidden aria-hidden="true">
         
         <div class="controls">
@@ -939,7 +993,7 @@
         <!-- Instructions Panel -->
         <div class="instructions" id="instructions">
             <h2>Load a Radiograph</h2>
-            <p>Click "Open Image", drag file here, or "Load from Server"</p>
+            <p>Click "Open" or "Server" to load an image</p>
             <small>
                 <strong>Mouse Controls:</strong><br>
                 • Left-drag: Pan | Wheel: Zoom | Middle-drag: Adjust<br>
