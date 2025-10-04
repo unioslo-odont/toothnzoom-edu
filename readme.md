@@ -29,9 +29,9 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 
 ### Core Functionality
 - **Image Loading**: Upload, drag & drop, server browser, URL loading
-- **Advanced Image Adjustments**: 
+- **Image Adjustments**: 
   - Brightness control (-100 to +100)
-  - Enhanced contrast range with extreme black/white mode
+  - Contrast range with extreme black/white mode
   - Edge enhancement filter
   - Image inversion
 - **Interactive Histogram Display**:
@@ -44,7 +44,7 @@ A pedagogical tool designed specifically for dental education in oral radiology.
 ### Image Processing
 
 The viewer features sophisticated image processing capabilities:
-- **Contrast Enhancement**: Two modes - standard (-100 to 50) for traditional adjustment, and extreme (50 to 100) for threshold-based dramatic effects
+- **Contrast Enhancement**: Automatic dual-mode operation - standard mode (-100 to 50) for traditional adjustment, automatically switching to extreme mode (50 to 100) for threshold-based dramatic effects
 - **Histogram & Transfer Curve**: Real-time visualization of brightness distribution and transformation mapping, including inversion effects
 - **Edge Enhancement**: Laplacian filter for detail enhancement
 - **Image Inversion**: Full negative effect with histogram reflection
