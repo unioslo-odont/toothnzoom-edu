@@ -3,9 +3,8 @@
 A web-based tool for dental education in oral radiology. This viewer allows instructors to provide radiographic examples to students and enables basic image manipulation for educational purposes.
 
 <p>
-  <img src="docs/tooth-n-zoom-screenshot.png" alt="Panoramic radiograph example" width="600"><br>
-  <em>Screenshot displaying panoramic image from
-    <a href="https://en.wikipedia.org/wiki/Panoramic_radiograph">Wikipedia</a>
+  <img src="docs/tooth-n-zoom-screenshot.png" alt="Screenshot" width="600"><br>
+  <em>Screenshot of app in use (Radiograph generated with AI)
   </em>
 </p>
 
